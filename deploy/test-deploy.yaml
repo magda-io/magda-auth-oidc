@@ -1,2 +1,3 @@
 clientId: xxxxxxx
 issuer: https://example.com/oidc
+issuerName: client-abc
