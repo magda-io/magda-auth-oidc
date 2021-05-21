@@ -49,6 +49,7 @@ See chart value file for details of the logic used to generate this setting valu
             {{- if .Values.maxClockSkew }}
             "--maxClockSkew", {{ .Values.maxClockSkew | quote }},
             {{- end }}
+            "--issuerName", {{ .Values.issuerName | required "`issuerName` is required for `magda-auth-oidc` chart." | quote }},
             "--issuer", {{ .Values.issuer | required "`issuer` is required for `magda-auth-oidc` chart." | quote }}
         ]
         volumeMounts:

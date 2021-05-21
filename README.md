@@ -66,6 +66,7 @@ Kubernetes: `>= 1.14.0-0`
 | global | object | `{"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | image | object | `{}` |  |
 | issuer | string | `nil` | OIDC issuer url. e.g. https://example.com or https://example.com/oidc A valid issuer url must has `/.well-known/openid-configuration` endpoint. i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible |
+| issuerName | string | `nil` | A short name will be used by Magda to identify users from different source / provider. This name must be unique accross all Magda auth providers / plugins. Max. 20 Char. e.g. `client-abc-oidc` |
 | maxClockSkew | string | `nil` | OIDC openid client clock skew tolerance (in seconds). Default to 120 if not provided |
 | replicas | int | `1` | no. of initial replicas |
 | resources.limits.cpu | string | `"50m"` |  |

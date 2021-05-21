@@ -120,6 +120,11 @@ clientId:
 # i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible
 issuer:
 
+# -- A short name will be used by Magda to identify users from different source / provider.
+# This name must be unique accross all Magda auth providers / plugins.
+# Max. 20 Char. e.g. `client-abc-oidc`
+issuerName: 
+
 # -- OpenID Connect Scopes. Default to `openid profile email` if not provided.
 scope:
 
