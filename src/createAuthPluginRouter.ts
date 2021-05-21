@@ -12,7 +12,8 @@ import OpenIdClient, {
     Issuer,
     custom,
     Strategy as OpenIdClientStrategy,
-    TokenSet
+    TokenSet,
+    UserinfoResponse
 } from "openid-client";
 import os from "os";
 const pkg = require("../package.json");
@@ -130,6 +131,23 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
     return client;
 }
 
+function createNameFromProfile(profile: UserinfoResponse) {
+    if (profile?.name) {
+        return profile.name;
+    }
+    const names: string[] = [
+        profile?.given_name,
+        profile?.middle_name,
+        profile?.family_name
+    ].filter((item) => !!item);
+
+    if (names.length) {
+        return names.join(" ");
+    }
+
+    return profile.email;
+}
+
 export default async function createAuthPluginRouter(
     options: AuthPluginRouterOptions
 ): Promise<Router> {
@@ -179,7 +197,7 @@ export default async function createAuthPluginRouter(
         },
         (
             tokenSet: TokenSet,
-            profile: any,
+            profile: UserinfoResponse,
             done: (err: any, user?: any) => void
         ) => {
             if (!profile?.email) {
@@ -193,7 +211,7 @@ export default async function createAuthPluginRouter(
             const userData: passport.Profile = {
                 id: profile?.sub,
                 provider: options.issuerName,
-                displayName: profile?.name,
+                displayName: createNameFromProfile(profile),
                 name: {
                     familyName: profile?.family_name,
                     givenName: profile?.given_name
