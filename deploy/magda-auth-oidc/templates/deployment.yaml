@@ -49,13 +49,7 @@ See chart value file for details of the logic used to generate this setting valu
             {{- if .Values.maxClockSkew }}
             "--maxClockSkew", {{ .Values.maxClockSkew | quote }},
             {{- end }}
-            {{- if .Values.domain }}
-            "--issuer", {{ .Values.domain | printf "https://%s/oauth2/default" | quote }}
-            {{- else if .Values.issuer }}
-            "--issuer", {{ .Values.issuer | quote }}
-            {{- else }}
-            {{- fail "either `domain` or `issuer` is required for `magda-auth-okat` chart." -}}
-            {{- end }}
+            "--issuer", {{ .Values.issuer | required "`issuer` is required for `magda-auth-oidc` chart." | quote }}
         ]
         volumeMounts:
           - name: gateway-config
