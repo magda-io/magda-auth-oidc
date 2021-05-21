@@ -32,8 +32,14 @@ jobs:
       - run: yarn build
       - run: yarn test
 
+      - name: helm-build-dependencies
+        run: helm dep up deploy/${REPO_NAME}
+
       - name: helm-check
         run: yarn helm-lint
+
+      - name: check-helm-chart-verion
+        run: yarn check-helm-chart-version deploy/${REPO_NAME}/Chart.yaml
 
       - name: Login to GitHub Package Repository
         env:
@@ -55,7 +61,6 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
       - name: Release Helm Chart
         env:
           CR_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
