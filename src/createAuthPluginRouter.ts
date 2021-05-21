@@ -17,15 +17,15 @@ import OpenIdClient, {
 import os from "os";
 const pkg = require("../package.json");
 
-const OKTA_DEFAULT_TIMEOUT = 10000;
-const OKTA_DEFAULT_MAX_CLOCK_SKEW = 120;
-const STRATEGY_NAME = "okta-oidc";
+const OIDC_DEFAULT_TIMEOUT = 10000;
+const OIDC_DEFAULT_MAX_CLOCK_SKEW = 120;
+const STRATEGY_NAME = "oidc";
 const DEFAULT_SCOPE = "openid profile email";
 
 export interface AuthPluginRouterOptions {
     authorizationApi: ApiClient;
     passport: Authenticator;
-    issuer: string; // e.g. https://{yourOktaDomain}/oauth2/default
+    issuer: string; // e.g. https://example.com/oidc
     clientId: string; // clientId that might be required by your IDP provider
     clientSecret: string; // clientSecret that might be required by your IDP provider
     externalUrl: string;
@@ -34,14 +34,14 @@ export interface AuthPluginRouterOptions {
     timeout?: number; // timeout of openid client. Default 10000 milseconds
     /**
      * Defaults to 120.
-     * This is the maximum difference allowed between your server's clock and Okta's in seconds.
+     * This is the maximum difference allowed between your server's clock and OIDC provider's in seconds.
      * Setting this to 0 is not recommended, because it increases the likelihood that valid jwts will fail verification due to nbf and exp issues.
      */
     maxClockSkew?: number;
     /**
      * Defaults to openid, which will only return the sub claim.
      * To obtain more information about the user, use openid profile.
-     * For a list of scopes and claims, please see [S]cope-dependent claims](https://developer.okta.com/standards/OIDC/index.html#scope-dependent-claims-not-always-returned) for more information.
+     * For a list of scopes and claims, please refer to your provider document
      */
     scope?: string;
 }
@@ -84,43 +84,45 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
 
     const externalUrl = options.externalUrl;
     const loginBaseUrl = getAbsoluteUrl("/auth/login/plugin", externalUrl);
+    const discoveryEndpoint = getAbsoluteUrl(
+        "/.well-known/openid-configuration",
+        options.issuer
+    );
+    const authPluginConfig = options.authPluginConfig;
 
     Issuer[custom.http_options] = function (opts) {
         opts = customizeUserAgent(opts);
-        opts.timeout = options?.timeout || OKTA_DEFAULT_TIMEOUT;
+        opts.timeout = options?.timeout || OIDC_DEFAULT_TIMEOUT;
         return opts;
     };
 
-    console.log("Fetching Okta Authorization Server OpenId configuration...");
+    console.log(`Fetching OIDC configuration from ${discoveryEndpoint}...`);
 
-    const iss = await Issuer.discover(
-        options.issuer + "/.well-known/openid-configuration"
-    );
+    const iss = await Issuer.discover(discoveryEndpoint);
 
-    console.log(
-        "Okta Authorization Server OpenId configuration:",
-        iss.metadata
-    );
+    console.log("OIDC configuration:", iss.metadata);
 
     const client = new iss.Client({
         client_id: options.clientId,
         client_secret: options.clientSecret,
-        redirect_uris: [getAbsoluteUrl("/okta/return", loginBaseUrl)]
+        redirect_uris: [
+            getAbsoluteUrl(`/${authPluginConfig.key}/return`, loginBaseUrl)
+        ]
     });
 
-    console.log("Okta clientId: ", options.clientId);
+    console.log("OIDC clientId: ", options.clientId);
 
     client[custom.http_options] = (options) => {
         options = customizeUserAgent(options);
-        options.timeout = options.timeout || OKTA_DEFAULT_TIMEOUT;
+        options.timeout = options.timeout || OIDC_DEFAULT_TIMEOUT;
         return options;
     };
     client[custom.clock_tolerance] =
         typeof options?.maxClockSkew === "undefined"
-            ? OKTA_DEFAULT_MAX_CLOCK_SKEW
+            ? OIDC_DEFAULT_MAX_CLOCK_SKEW
             : options.maxClockSkew;
 
-    console.log("Timeout Setting: ", options.timeout || OKTA_DEFAULT_TIMEOUT);
+    console.log("Timeout Setting: ", options.timeout || OIDC_DEFAULT_TIMEOUT);
     console.log("clock_tolerance Setting: ", client[custom.clock_tolerance]);
     console.log("OpenId Client Created!");
 
@@ -139,6 +141,8 @@ export default async function createAuthPluginRouter(
         options.authPluginRedirectUrl,
         externalUrl
     );
+
+    const issuer = options?.issuer;
     const scope = options.scope ? options.scope : DEFAULT_SCOPE;
 
     if (!clientId) {
@@ -149,7 +153,7 @@ export default async function createAuthPluginRouter(
         throw new Error("Required client secret can't be empty!");
     }
 
-    if (!options.issuer) {
+    if (!issuer) {
         throw new Error("Required issuer url (options.issuer) can't be empty!");
     }
 
@@ -179,7 +183,7 @@ export default async function createAuthPluginRouter(
 
             const userData: passport.Profile = {
                 id: profile?.sub,
-                provider: "okta",
+                provider: issuer,
                 displayName: profile?.name,
                 name: {
                     familyName: profile?.family_name,
@@ -188,7 +192,7 @@ export default async function createAuthPluginRouter(
                 emails: [{ value: profile.email }]
             };
 
-            createOrGetUserToken(authorizationApi, userData, "okta")
+            createOrGetUserToken(authorizationApi, userData, issuer)
                 .then((userToken) => done(null, userToken))
                 .catch((error) => done(error));
         }

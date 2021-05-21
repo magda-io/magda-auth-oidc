@@ -14,25 +14,14 @@ global:
 # </ul>
 # This field is for overriding the value set by `global.authPluginRedirectUrl`.
 # Unless you want to have a different value only for this auth plugin, you shouldn't set this value.
-authPluginRedirectUrl:
-
-# -- the redirection url after the whole authentication process is completed.
-# Authentication Plugins will use this value as default.
-# The following query paramaters can be used to supply the authentication result:
-# <ul>
-# <li>result: (string) Compulsory. Possible value: "success" or "failure". </li>
-# <li>errorMessage: (string) Optional. Text message to provide more information on the error to the user. </li>
-# </ul>
-# This field is for overriding the value set by `global.authPluginRedirectUrl`.
-# Unless you want to have a different value only for this auth plugin, you shouldn't set this value.
 authPluginRedirectUrl: 
 
 authPluginConfig:
   # -- the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-]
-  key: "okta"
+  key: "oidc"
   
   # -- the display name of the auth plugin.
-  name: "Okta"
+  name: "OpenID Connect"
   
   # -- the display icon URL of the auth plugin.
   iconUrl: "/icon.svg"
@@ -123,24 +112,21 @@ resources:
   limits:
     cpu: 50m
 
-# -- okta clientId
+# -- OIDC clientId
 clientId:
 
-# -- okta domain. Used to generate issuer url (i.e. `https://{yourOktaDomain}/oauth2/default`).
-# You can skip this field and provide value for `issuer` field directly instead.
-domain: 
-
-# -- okta issuer url. When okta `domain` is provided, the `issuer` value can be omitted and will be default to "https://{yourOktaDomain}/oauth2/default"
+# -- OIDC issuer url. e.g. https://example.com or https://example.com/oidc
+# A valid issuer url must has `/.well-known/openid-configuration` endpoint.
+# i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible
 issuer:
 
-# -- okta openid access token scope. Default to `openid profile email` if not provided.
-# More see: https://developer.okta.com/docs/reference/api/oidc/#scopes
+# -- OpenID Connect Scopes. Default to `openid profile email` if not provided.
 scope:
 
-# -- Okat openid client HTTP request timeout (in milseconds). 
+# -- OIDC openid client HTTP request timeout (in milseconds). 
 # Default to 10000 if not provided.
 timeout:
 
-# -- Okat openid client clock skew tolerance (in seconds).
+# -- OIDC openid client clock skew tolerance (in seconds).
 # Default to 120 if not provided
 maxClockSkew:

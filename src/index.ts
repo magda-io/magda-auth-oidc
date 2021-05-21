@@ -81,39 +81,36 @@ const argv = yargs
         default: process.env.USER_ID || process.env.npm_package_config_userId
     })
     .option("clientId", {
-        describe: "Okta client Id",
+        describe: "OIDC client Id",
         type: "string",
         required: true
     })
     .option("clientSecret", {
-        describe: "Okta Client Secret",
+        describe: "OIDC Client Secret",
         type: "string",
         default:
             process.env.CLIENT_SECRET ||
             process.env.npm_package_config_clientSecret
     })
     .option("issuer", {
-        describe:
-            "The okta issuer URL. e.g. https://{yourOktaDomain}/oauth2/default",
+        describe: "The OIDC issuer URL. e.g. https://example.com/oidc",
         type: "string",
         required: true
     })
     .option("scope", {
-        describe: "Okat openid access token scope. Optional.",
+        describe: "OpenID Connect Scopes. Optional.",
         type: "string"
     })
     .option("timeout", {
-        describe:
-            "Okat openid client HTTP request timeout (in milseconds). Optional.",
+        describe: "OIDC client HTTP request timeout (in milseconds). Optional.",
         type: "number"
     })
     .option("maxClockSkew", {
-        describe:
-            "Okat openid client clock skew tolerance (in seconds). Optional.",
+        describe: "OIDC client clock skew tolerance (in seconds). Optional.",
         type: "number"
     }).argv;
 
-const authPluginConfig = (argv.authPluginConfigJson as any) as AuthPluginConfig;
+const authPluginConfig = argv.authPluginConfigJson as any as AuthPluginConfig;
 
 // Create a new Express application.
 const app = express();
@@ -127,7 +124,7 @@ app.get("/healthz", (req, res) => res.send("OK"));
  * a 36x36 size icon to be shown on frontend login page
  */
 app.get("/icon.svg", (req, res) =>
-    res.sendFile(path.resolve(__dirname, "../assets/generic-logo.svg"))
+    res.sendFile(path.resolve(__dirname, "../assets/oidc-logo.svg"))
 );
 
 /**

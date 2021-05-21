@@ -102,7 +102,7 @@ See chart value file for details of the logic used to generate this setting valu
           valueFrom:
             secretKeyRef:
               name: oauth-secrets
-              key: okta-client-secret
+              key: oidc-client-secret
       # --- load cookie setting from gateway-config
       volumes:
         - name: gateway-config

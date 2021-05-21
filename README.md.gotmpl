@@ -12,18 +12,18 @@ Requires MAGDA version 0.0.58 or above.
 
 1. Add the auth plugin as a [Helm Chart Dependency](https://helm.sh/docs/helm/helm_dependency/)
 ```yaml
-- name: magda-auth-okta
+- name: magda-auth-oidc
   version: 1.0.1
   repository: https://charts.magda.io
   tags:
     - all
-    - magda-auth-okta
+    - magda-auth-oidc
 ```
 
-2. Config the auth plugin with Okta client Id & domain
+2. Config the auth plugin with OIDC client Id & issuer
 ```yaml
-magda-auth-okta:
-  domain: dev-xxxxxx.okta.com
+magda-auth-oidc:
+  issuer: "https://example.com/oidc"
   clientId: "xxxxxxxx"
 ```
 
@@ -31,8 +31,8 @@ magda-auth-okta:
 ```yaml
 gateway:
   authPlugins:
-  - key: okta
-    baseUrl: http://magda-auth-okta
+  - key: oidc
+    baseUrl: http://magda-auth-oidc
 ```
 
 {{ template "chart.maintainersSection" . }}

@@ -1,8 +1,8 @@
-# magda-auth-okta
+# magda-auth-oidc
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square)
 
-A Magda Authentication Plugin for Okta.
+A Generic Magda Authentication Plugin for OpenID Connect.
 
 Requires MAGDA version 0.0.58 or above.
 
@@ -10,18 +10,18 @@ Requires MAGDA version 0.0.58 or above.
 
 1. Add the auth plugin as a [Helm Chart Dependency](https://helm.sh/docs/helm/helm_dependency/)
 ```yaml
-- name: magda-auth-okta
+- name: magda-auth-oidc
   version: 1.0.1
   repository: https://charts.magda.io
   tags:
     - all
-    - magda-auth-okta
+    - magda-auth-oidc
 ```
 
-2. Config the auth plugin with Okta client Id & domain
+2. Config the auth plugin with OIDC client Id & issuer
 ```yaml
-magda-auth-okta:
-  domain: dev-xxxxxx.okta.com
+magda-auth-oidc:
+  issuer: "https://example.com/oidc"
   clientId: "xxxxxxxx"
 ```
 
@@ -29,11 +29,9 @@ magda-auth-okta:
 ```yaml
 gateway:
   authPlugins:
-  - key: okta
-    baseUrl: http://magda-auth-okta
+  - key: oidc
+    baseUrl: http://magda-auth-oidc
 ```
-
-4. Make sure `oauth-secrets` secret has the correct value for `okta-client-secret` key
 
 ## Requirements
 
@@ -45,35 +43,33 @@ Kubernetes: `>= 1.14.0-0`
 |-----|------|---------|-------------|
 | authPluginConfig.authenticationMethod | string | `"IDP-URI-REDIRECTION"` | The authentication method of the plugin. Support values are: <ul> <li>`IDP-URI-REDIRECTION`: the plugin will rediredct user agent to idp (identity provider) for authentication. e.g. Google & fackebook oauth etc.</li> <li>`PASSWORD`: the plugin expect frontend do a form post that contains username & password to the plugin for authentication.</li> <li>`QR-CODE`: the plugin offers a url that is used by the frontend to request auth challenge data. The data will be encoded into a QR-code image and expect the user scan the QR code with a mobile app to complete the authentication request.</li> </ul> See [Authentication Plugin Specification](https://github.com/magda-io/magda/blob/master/docs/docs/authentication-plugin-spec.md) for more details |
 | authPluginConfig.iconUrl | string | `"/icon.svg"` | the display icon URL of the auth plugin. |
-| authPluginConfig.key | string | `"okta-auth-plugin"` | the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-] |
+| authPluginConfig.key | string | `"oidc"` | the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-] |
 | authPluginConfig.loginFormExtraInfoContent | string | `""` | Optional; Only applicable when authenticationMethod = "PASSWORD". If present, will displayed the content underneath the login form to provide extra info to users. e.g. how to reset password Can support content in markdown format. |
 | authPluginConfig.loginFormExtraInfoHeading | string | `""` | Optional; Only applicable when authenticationMethod = "PASSWORD". If present, will displayed the heading underneath the login form to provide extra info to users. e.g. how to reset password |
 | authPluginConfig.loginFormPasswordFieldLabel | string | "Password" | Optional; Only applicable when authenticationMethod = "PASSWORD". |
 | authPluginConfig.loginFormUsernameFieldLabel | string | "Username" | Optional; Only applicable when authenticationMethod = "PASSWORD". |
-| authPluginConfig.name | string | `"Okta"` | the display name of the auth plugin. |
+| authPluginConfig.name | string | `"OpenID Connect"` | the display name of the auth plugin. |
 | authPluginConfig.qrCodeAuthResultPollUrl | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". The url that is used by frontend to poll the authentication processing result. See [Authentication Plugin Specification](https://github.com/magda-io/magda/blob/master/docs/docs/authentication-plugin-spec.md) for more details |
 | authPluginConfig.qrCodeExtraInfoContent | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". If present, will displayed the content underneath the login form to provide extra info to users. e.g. how to download moile app to scan the QR Code. Can support content in markdown format. |
 | authPluginConfig.qrCodeExtraInfoHeading | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". If present, will displayed the heading underneath the QR Code image to provide extra instruction to users. e.g. how to download moile app to scan the QR Code |
 | authPluginConfig.qrCodeImgDataRequestUrl | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". The url that is used by frontend client to request auth challenge data from the authentication plugin. See [Authentication Plugin Specification](https://github.com/magda-io/magda/blob/master/docs/docs/authentication-plugin-spec.md) for more details |
 | authPluginRedirectUrl | string | `nil` | the redirection url after the whole authentication process is completed. Authentication Plugins will use this value as default. The following query paramaters can be used to supply the authentication result: <ul> <li>result: (string) Compulsory. Possible value: "success" or "failure". </li> <li>errorMessage: (string) Optional. Text message to provide more information on the error to the user. </li> </ul> This field is for overriding the value set by `global.authPluginRedirectUrl`. Unless you want to have a different value only for this auth plugin, you shouldn't set this value. |
-| authPluginRedirectUrl | string | `nil` | the redirection url after the whole authentication process is completed. Authentication Plugins will use this value as default. The following query paramaters can be used to supply the authentication result: <ul> <li>result: (string) Compulsory. Possible value: "success" or "failure". </li> <li>errorMessage: (string) Optional. Text message to provide more information on the error to the user. </li> </ul> This field is for overriding the value set by `global.authPluginRedirectUrl`. Unless you want to have a different value only for this auth plugin, you shouldn't set this value. |
 | autoscaler.enabled | bool | `false` | turn on the autoscaler or not |
 | autoscaler.maxReplicas | int | `3` |  |
 | autoscaler.minReplicas | int | `1` |  |
 | autoscaler.targetCPUUtilizationPercentage | int | `80` |  |
-| clientId | string | `nil` | okta clientId |
+| clientId | string | `nil` | OIDC clientId |
 | defaultAdminUserId | string | `"00000000-0000-4000-8000-000000000000"` | which system account we used to talk to auth api The value of this field will only be used when `global.defaultAdminUserId` has no value |
 | defaultImage.imagePullSecret | bool | `false` |  |
 | defaultImage.pullPolicy | string | `"IfNotPresent"` |  |
 | defaultImage.repository | string | `"docker.io/data61"` |  |
-| domain | string | `nil` | okta domain. Used to generate issuer url (i.e. `https://{yourOktaDomain}/oauth2/default`). You can skip this field and provide value for `issuer` field directly instead. |
 | global | object | `{"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | image | object | `{}` |  |
-| issuer | string | `nil` | okta issuer url. When okta `domain` is provided, the `issuer` value can be omitted and will be default to "https://{yourOktaDomain}/oauth2/default" |
-| maxClockSkew | string | `nil` | Okat openid client clock skew tolerance (in seconds). Default to 120 if not provided |
+| issuer | string | `nil` | OIDC issuer url. e.g. https://example.com or https://example.com/oidc A valid issuer url must has `/.well-known/openid-configuration` endpoint. i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible |
+| maxClockSkew | string | `nil` | OIDC openid client clock skew tolerance (in seconds). Default to 120 if not provided |
 | replicas | int | `1` | no. of initial replicas |
 | resources.limits.cpu | string | `"50m"` |  |
 | resources.requests.cpu | string | `"10m"` |  |
 | resources.requests.memory | string | `"30Mi"` |  |
-| scope | string | `nil` | okta openid access token scope. Default to `openid profile email` if not provided. More see: https://developer.okta.com/docs/reference/api/oidc/#scopes |
-| timeout | string | `nil` | Okat openid client HTTP request timeout (in milseconds).  Default to 10000 if not provided. |
+| scope | string | `nil` | OpenID Connect Scopes. Default to `openid profile email` if not provided. |
+| timeout | string | `nil` | OIDC openid client HTTP request timeout (in milseconds).  Default to 10000 if not provided. |

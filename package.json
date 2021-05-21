@@ -1,9 +1,9 @@
 {
-  "name": "magda-auth-okta",
-  "version": "1.0.3",
-  "description": "A Magda Authentication Plugin for Okta",
-  "repository": "https://github.com/magda-io/magda-auth-okta.git",
-  "author": "",
+  "name": "magda-auth-oidc",
+  "version": "1.1.0",
+  "description": "A Generic Magda Authentication Plugin for OpenID Connect",
+  "repository": "https://github.com/magda-io/magda-auth-oidc.git",
+  "author": "Jacky Jiang",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
@@ -15,12 +15,12 @@
     "test": "mocha --require ts-node/register \"src/test/**/*.spec.ts\"",
     "docker-build-local": "create-docker-context-for-node-component --build --push --tag auto --local",
     "docker-build-prod": "create-docker-context-for-node-component --build --push --tag auto",
-    "helm-lint": "helm lint deploy/magda-auth-okta -f deploy/test-deploy.yaml",
+    "helm-lint": "helm lint deploy/magda-auth-oidc -f deploy/test-deploy.yaml",
     "helm-docs": "helm-docs -t ./README.md.gotmpl -o ../../README.md",
     "retag-and-push": "retag-and-push"
   },
   "devDependencies": {
-    "@magda/docker-utils": "^0.0.60-alpha.7",
+    "@magda/docker-utils": "^0.0.60-rc.2",
     "@types/express": "^4.0.37",
     "@types/lodash": "^4.14.162",
     "@types/mocha": "^8.0.3",
@@ -33,8 +33,8 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "@magda/auth-api-client": "^0.0.60-alpha.7",
-    "@magda/authentication-plugin-sdk": "^0.0.60-alpha.7",
+    "@magda/auth-api-client": "^0.0.60-rc.2",
+    "@magda/authentication-plugin-sdk": "^0.0.60-rc.2",
     "express": "^4.15.4",
     "lodash": "^4.17.20",
     "openid-client": "3.12.2",
@@ -44,7 +44,7 @@
   },
   "config": {
     "docker": {
-      "name": "data61/magda-auth-okta",
+      "name": "data61/magda-auth-oidc",
       "include": "node_modules dist Dockerfile package.json assets"
     },
     "jwtSecret": "squirrel",

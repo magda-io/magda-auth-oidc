@@ -1,2 +1,2 @@
 clientId: xxxxxxx
-domain: dev-xxxxxx.okta.com
+issuer: https://example.com/oidc
