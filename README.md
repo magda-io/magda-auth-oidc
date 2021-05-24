@@ -1,6 +1,6 @@
 # magda-auth-oidc
 
-![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square)
+![Version: 1.1.1](https://img.shields.io/badge/Version-1.1.1-informational?style=flat-square)
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
@@ -43,7 +43,7 @@ Kubernetes: `>= 1.14.0-0`
 |-----|------|---------|-------------|
 | authPluginConfig.authenticationMethod | string | `"IDP-URI-REDIRECTION"` | The authentication method of the plugin. Support values are: <ul> <li>`IDP-URI-REDIRECTION`: the plugin will rediredct user agent to idp (identity provider) for authentication. e.g. Google & fackebook oauth etc.</li> <li>`PASSWORD`: the plugin expect frontend do a form post that contains username & password to the plugin for authentication.</li> <li>`QR-CODE`: the plugin offers a url that is used by the frontend to request auth challenge data. The data will be encoded into a QR-code image and expect the user scan the QR code with a mobile app to complete the authentication request.</li> </ul> See [Authentication Plugin Specification](https://github.com/magda-io/magda/blob/master/docs/docs/authentication-plugin-spec.md) for more details |
 | authPluginConfig.iconUrl | string | `"/icon.svg"` | the display icon URL of the auth plugin. |
-| authPluginConfig.key | string | `"oidc"` | the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-] |
+| authPluginConfig.key | string | `"oidc"` | the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-]. Max. 20 chars. |
 | authPluginConfig.loginFormExtraInfoContent | string | `""` | Optional; Only applicable when authenticationMethod = "PASSWORD". If present, will displayed the content underneath the login form to provide extra info to users. e.g. how to reset password Can support content in markdown format. |
 | authPluginConfig.loginFormExtraInfoHeading | string | `""` | Optional; Only applicable when authenticationMethod = "PASSWORD". If present, will displayed the heading underneath the login form to provide extra info to users. e.g. how to reset password |
 | authPluginConfig.loginFormPasswordFieldLabel | string | "Password" | Optional; Only applicable when authenticationMethod = "PASSWORD". |
@@ -66,7 +66,6 @@ Kubernetes: `>= 1.14.0-0`
 | global | object | `{"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | image | object | `{}` |  |
 | issuer | string | `nil` | OIDC issuer url. e.g. https://example.com or https://example.com/oidc A valid issuer url must has `/.well-known/openid-configuration` endpoint. i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible |
-| issuerName | string | `nil` | A short name will be used by Magda to identify users from different source / provider. This name must be unique accross all Magda auth providers / plugins. Max. 20 Char. e.g. `client-abc-oidc` |
 | maxClockSkew | string | `nil` | OIDC openid client clock skew tolerance (in seconds). Default to 120 if not provided |
 | replicas | int | `1` | no. of initial replicas |
 | resources.limits.cpu | string | `"50m"` |  |
