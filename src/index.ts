@@ -97,11 +97,6 @@ const argv = yargs
         type: "string",
         required: true
     })
-    .option("issuerName", {
-        describe: "A short name will be used by Magda to identify users from different source / provider. Max. 20 Char. e.g. `client-abc-oidc`",
-        type: "string",
-        required: true
-    })
     .option("scope", {
         describe: "OpenID Connect Scopes. Optional.",
         type: "string"
@@ -184,7 +179,6 @@ const authApiClient = new AuthApiClient(
             clientId: argv.clientId,
             clientSecret: argv.clientSecret,
             issuer: argv.issuer,
-            issuerName: argv.issuerName,
             externalUrl: argv.externalUrl,
             authPluginRedirectUrl: argv.authPluginRedirectUrl,
             authPluginConfig,

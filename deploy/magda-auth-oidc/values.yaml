@@ -17,7 +17,7 @@ global:
 authPluginRedirectUrl: 
 
 authPluginConfig:
-  # -- the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-]
+  # -- the unique key of the auth plugin. Allowed characters: [a-zA-Z0-9\-]. Max. 20 chars.
   key: "oidc"
   
   # -- the display name of the auth plugin.
@@ -119,11 +119,6 @@ clientId:
 # A valid issuer url must has `/.well-known/openid-configuration` endpoint.
 # i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible
 issuer:
-
-# -- A short name will be used by Magda to identify users from different source / provider.
-# This name must be unique accross all Magda auth providers / plugins.
-# Max. 20 Char. e.g. `client-abc-oidc`
-issuerName: 
 
 # -- OpenID Connect Scopes. Default to `openid profile email` if not provided.
 scope:

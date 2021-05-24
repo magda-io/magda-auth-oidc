@@ -27,7 +27,6 @@ export interface AuthPluginRouterOptions {
     authorizationApi: ApiClient;
     passport: Authenticator;
     issuer: string; // e.g. https://example.com/oidc
-    issuerName: string;
     clientId: string; // clientId that might be required by your IDP provider
     clientSecret: string; // clientSecret that might be required by your IDP provider
     externalUrl: string;
@@ -156,6 +155,7 @@ export default async function createAuthPluginRouter(
     const clientId = options.clientId;
     const clientSecret = options.clientSecret;
     const externalUrl = options.externalUrl;
+    const authPluginConfig = options.authPluginConfig;
     const resultRedirectionUrl = getAbsoluteUrl(
         options.authPluginRedirectUrl,
         externalUrl
@@ -175,12 +175,6 @@ export default async function createAuthPluginRouter(
     if (!issuer) {
         throw new Error(
             "Required issuer url: (options.issuer) can't be empty!"
-        );
-    }
-
-    if (!options.issuerName) {
-        throw new Error(
-            "Required issuerName: (options.issuerName) can't be empty!"
         );
     }
 
@@ -210,7 +204,7 @@ export default async function createAuthPluginRouter(
 
             const userData: passport.Profile = {
                 id: profile?.sub,
-                provider: options.issuerName,
+                provider: authPluginConfig.key,
                 displayName: createNameFromProfile(profile),
                 name: {
                     familyName: profile?.family_name,
@@ -219,7 +213,11 @@ export default async function createAuthPluginRouter(
                 emails: [{ value: profile.email }]
             };
 
-            createOrGetUserToken(authorizationApi, userData, options.issuerName)
+            createOrGetUserToken(
+                authorizationApi,
+                userData,
+                authPluginConfig.key
+            )
                 .then((userToken) => done(null, userToken))
                 .catch((error) => done(error));
         }
