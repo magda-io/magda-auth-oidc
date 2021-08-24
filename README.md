@@ -33,6 +33,8 @@ gateway:
     baseUrl: http://magda-auth-oidc
 ```
 
+4. Make sure `oauth-secrets` secret has the correct value for `oidc-client-secret` key
+
 ## Requirements
 
 Kubernetes: `>= 1.14.0-0`
