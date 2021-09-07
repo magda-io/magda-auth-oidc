@@ -82,17 +82,27 @@ See chart value file for details of the logic used to generate this setting valu
             secretKeyRef:
               name: auth-secrets
               key: session-secret
-{{- if .Values.global.noDbAuth }}
         - name: PGUSER
           value: client
-{{- else }}
-        - name: PGUSER
-          value: client
+{{- $useInK8sDbInstanceList := (get .Values.global "useInK8sDbInstance") | default dict }}
+{{- $dbSecretName := "session-db" }}
+{{- if and .Values.global.useCombinedDb (empty (get $useInK8sDbInstanceList "session-db")) }}
+{{- $dbSecretName := "combined-db" }}
+{{- end }}
+{{- $dbSecret := (lookup "v1" "Secret" .Release.Namespace $dbSecretName) | default dict }}
+{{- $legacyDbSecret := (lookup "v1" "Secret" .Release.Namespace "db-passwords") | default dict }}
+{{- if $dbSecret }}
+         - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $dbSecretName | quote }}
+              key: "password"
+{{- else if and ($legacyDbSecret | empty | not) (.Values.global.noDbAuth | empty) }}
         - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-passwords
-              key: session-db-client
+              name: "db-passwords"
+              key: "session-db-client"
 {{- end }}
         - name: CLIENT_SECRET
           valueFrom:
