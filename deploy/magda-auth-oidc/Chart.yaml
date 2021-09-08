@@ -1,7 +1,7 @@
 apiVersion: v2
 name: magda-auth-oidc
 description: A Generic Magda Authentication Plugin for OpenID Connect.
-version: "1.1.1"
+version: "1.2.0-alpha.1"
 kubeVersion: ">= 1.14.0-0"
 home: "https://github.com/magda-io/magda-auth-oidc"
 sources: [ "https://github.com/magda-io/magda-auth-oidc" ]
