@@ -84,18 +84,20 @@ See chart value file for details of the logic used to generate this setting valu
               key: session-secret
         - name: PGUSER
           value: client
-{{- $useInK8sDbInstanceList := (get .Values.global "useInK8sDbInstance") | default dict }}
-{{- $dbSecretName := "session-db" }}
-{{- if and .Values.global.useCombinedDb (empty (get $useInK8sDbInstanceList "session-db")) }}
-{{- $dbSecretName := "combined-db" }}
-{{- end }}
-{{- $dbSecret := (lookup "v1" "Secret" .Release.Namespace $dbSecretName) | default dict }}
+{{- $dbSecret := (lookup "v1" "Secret" .Release.Namespace "session-db-password") | default dict }}
+{{- $combinedBbSecret := (lookup "v1" "Secret" .Release.Namespace "combined-db-password") | default dict }}
 {{- $legacyDbSecret := (lookup "v1" "Secret" .Release.Namespace "db-passwords") | default dict }}
 {{- if $dbSecret }}
-         - name: PGPASSWORD
+        - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ $dbSecretName | quote }}
+              name: "session-db-password"
+              key: "password"
+{{- else if $combinedBbSecret }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "combined-db-password"
               key: "password"
 {{- else if and ($legacyDbSecret | empty | not) (.Values.global.noDbAuth | empty) }}
         - name: PGPASSWORD
