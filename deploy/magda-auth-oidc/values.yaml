@@ -85,9 +85,9 @@ autoscaler:
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
 
-image: {}
-  # -- default docker image name 
-  # name: 
+image: 
+  name: magda-auth-oidc
+  # -- other docker image settings could be 
   # repository: 
   # tag: 
   # pullPolicy: 

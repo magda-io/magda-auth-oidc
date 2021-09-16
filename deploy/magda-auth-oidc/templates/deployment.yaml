@@ -28,7 +28,7 @@ See chart value file for details of the logic used to generate this setting valu
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository | default .Values.global.image.repository | default .Values.defaultImage.repository }}/{{ .Values.image.name | default .Chart.Name }}:{{ .Values.image.tag | default .Values.global.image.tag | default .Chart.Version }}"
+        image: "{{ .Values.image.repository | default .Values.global.image.repository | default .Values.defaultImage.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Values.global.image.tag | default .Chart.Version }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | default .Values.global.image.pullPolicy | default .Values.defaultImage.pullPolicy }}
         command: [
             "node",
@@ -41,7 +41,7 @@ See chart value file for details of the logic used to generate this setting valu
             "--authPluginRedirectUrl", {{ .Values.authPluginRedirectUrl | default .Values.global.authPluginRedirectUrl | quote }},
             "--authApiUrl", "http://authorization-api/v0",
             "--authPluginConfigJson", "/etc/{{ .Chart.Name }}-config/authPluginConfig.json",
-            "--clientId", {{ .Values.clientId | required "clientId is required for `magda-auth-okat` chart." | quote }},
+            "--clientId", {{ .Values.clientId | required (printf "`clientId` is required for magda auth plugin `%s`." .Chart.Name) | quote }},
             {{- if .Values.scope }}
             "--scope", {{ .Values.scope | quote }},
             {{- end }}
@@ -51,7 +51,7 @@ See chart value file for details of the logic used to generate this setting valu
             {{- if .Values.maxClockSkew }}
             "--maxClockSkew", {{ .Values.maxClockSkew | quote }},
             {{- end }}
-            "--issuer", {{ .Values.issuer | required "`issuer` is required for `magda-auth-oidc` chart." | quote }}
+            "--issuer", {{ .Values.issuer | required (printf "`issuer` is required for magda auth plugin `%s`." .Chart.Name) | quote }}
         ]
         volumeMounts:
           - name: gateway-config
@@ -82,23 +82,35 @@ See chart value file for details of the logic used to generate this setting valu
             secretKeyRef:
               name: auth-secrets
               key: session-secret
-{{- if .Values.global.noDbAuth }}
         - name: PGUSER
           value: client
-{{- else }}
-        - name: PGUSER
-          value: client
+{{- $dbSecret := (lookup "v1" "Secret" .Release.Namespace "session-db-password") | default dict }}
+{{- $combinedBbSecret := (lookup "v1" "Secret" .Release.Namespace "combined-db-password") | default dict }}
+{{- $legacyDbSecret := (lookup "v1" "Secret" .Release.Namespace "db-passwords") | default dict }}
+{{- if $dbSecret }}
         - name: PGPASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-passwords
-              key: session-db-client
+              name: "session-db-password"
+              key: "password"
+{{- else if $combinedBbSecret }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "combined-db-password"
+              key: "password"
+{{- else if and ($legacyDbSecret | empty | not) (.Values.global.noDbAuth | empty) }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "db-passwords"
+              key: "session-db-client"
 {{- end }}
         - name: CLIENT_SECRET
           valueFrom:
             secretKeyRef:
-              name: oauth-secrets
-              key: oidc-client-secret
+              name: "{{ .Chart.Name }}-secret"
+              key: "client-secret"
       # --- load cookie setting from gateway-config
       volumes:
         - name: gateway-config

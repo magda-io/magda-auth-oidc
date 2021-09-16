@@ -13,29 +13,41 @@ Requires MAGDA version 0.0.58 or above.
 1. Add the auth plugin as a [Helm Chart Dependency](https://helm.sh/docs/helm/helm_dependency/)
 ```yaml
 - name: magda-auth-oidc
+  alias: magda-auth-my-idp
   version: 1.1.0
   repository: https://charts.magda.io
-  tags:
-    - all
-    - magda-auth-oidc
 ```
+
+> Please note: `alias` field is optional. Its purpose is to give the helm chart an alias name (rather than the default `magda-auth-oidc`) so it's possible to use `magda-auth-oidc` plugins multiple times (for different idps) in your deployment.
+> When `alias` is not specified, you should reference its name as `magda-auth-oidc`.
 
 2. Config the auth plugin with OIDC client Id & issuer
 ```yaml
-magda-auth-oidc:
-  issuer: "https://example.com/oidc"
+magda-auth-my-idp:
+  issuer: "https://example.com/my-idp-issuer-url"
   clientId: "xxxxxxxx"
+  # Optional; only when you've specified alias name and want to support multiple oidc idps at the same time 
+  authPluginConfig:
+    key: "my-idp"
+    name: "Login to My IDP"
 ```
+> When `alias` is not specified when define [Helm Chart Dependency](https://helm.sh/docs/helm/helm_dependency/), you should reference its name as `magda-auth-oidc` in your config.
 
 3. Config Gatway to add the auth plugin to Gateway's plugin list (More details see [here](https://github.com/magda-io/magda/blob/master/deploy/helm/internal-charts/gateway/README.md))
 ```yaml
 gateway:
   authPlugins:
-  - key: oidc
-    baseUrl: http://magda-auth-oidc
+  # key should match the `authPluginConfig.key` you set above.
+  # If you didn't specify, it should be `oidc` by default
+  - key: "my-idp" 
+    # baseUrl should be http://[alias name of the auth plugin].
+    # If you didn't specify, it's `http://magda-auth-oidc` by default.
+    baseUrl: http://magda-auth-my-idp
 ```
 
-4. Make sure `oauth-secrets` secret has the correct value for `oidc-client-secret` key
+4. Create a secret in your deployment Magda namespace with the correct value for `client-secret` key
+
+The secret's name should match pattern `[alias name of the auth plugin]-secret`. If you didn't specify alias name for the auth plugin, the secret name should be `oidc-secret` by default.
 
 {{ template "chart.maintainersSection" . }}
 
