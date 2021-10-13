@@ -1,3 +1,7 @@
+# v1.2.2
+
+- Fixed #1, timeout setting didn't apply to all HTTP connections
+
 # v1.2.1
 
 - Upgrade to magda-common lib chart v1.0.0-alpha.4

@@ -91,6 +91,11 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
     );
     const authPluginConfig = options.authPluginConfig;
 
+    custom.setHttpOptionsDefaults({
+        ...customizeUserAgent({}),
+        timeout: options?.timeout || OIDC_DEFAULT_TIMEOUT
+    });
+
     Issuer[custom.http_options] = function (opts) {
         opts = customizeUserAgent(opts);
         opts.timeout = options?.timeout || OIDC_DEFAULT_TIMEOUT;
