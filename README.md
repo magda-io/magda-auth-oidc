@@ -1,6 +1,6 @@
 # magda-auth-oidc
 
-![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square)
+![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square)
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
@@ -50,6 +50,10 @@ The secret's name should match pattern `[alias name of the auth plugin]-secret`.
 ## Requirements
 
 Kubernetes: `>= 1.14.0-0`
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://charts.magda.io | magda-common | 1.0.0-alpha.4 |
 
 ## Values
 
