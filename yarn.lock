@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@magda/auth-api-client@^0.0.60-rc.2":
-  version "0.0.60-rc.2"
-  resolved "https://registry.yarnpkg.com/@magda/auth-api-client/-/auth-api-client-0.0.60-rc.2.tgz#c1b781118efe7eb473675d8ad13f64cb14780ea9"
-  integrity sha512-ODIGf+2+LE4Z9cg6Vck9trxZSbsvc4lwChOk64Txg1TV8hXFP3W1hbklQAJo1mRNQRjQINfHy/2COwozGzw/fg==
+"@magda/auth-api-client@^0.0.60":
+  version "0.0.60"
+  resolved "https://registry.yarnpkg.com/@magda/auth-api-client/-/auth-api-client-0.0.60.tgz#b001a3df51a8e5a6c65c65945a320047ba19c599"
+  integrity sha512-XW7pTyE47i+Uy6KPZuZz5CZfSRcmROWYZ08zH5G+raS2yadscrqFD6YWOSBNOpCG1GXbI8NEZhVuwOhmLFJjRQ==
 
-"@magda/authentication-plugin-sdk@^0.0.60-rc.2":
-  version "0.0.60-rc.2"
-  resolved "https://registry.yarnpkg.com/@magda/authentication-plugin-sdk/-/authentication-plugin-sdk-0.0.60-rc.2.tgz#03bd4d500031b342518607e7cd9397eff8fe1b9f"
-  integrity sha512-ltP1cxWSUwCR08vrza2zv1oECZW66L2fbmLsWXh7c+WvnitqrjP/sA2MvsmA2XoWapb6wJq16LJdofzFa/FjpQ==
+"@magda/authentication-plugin-sdk@^0.0.60":
+  version "0.0.60"
+  resolved "https://registry.yarnpkg.com/@magda/authentication-plugin-sdk/-/authentication-plugin-sdk-0.0.60.tgz#c99da82f658a44450c4d95ed2dd76b23a2a53d05"
+  integrity sha512-O+vMm1yQ/Uo4lF/EeuCVWTPWlPmu75FNa4nIrl73dLbU+9XW9RSIKnAOiGdRlFMTL494wCCicfBoU24ojlqpVA==
   dependencies:
     connect-pg-simple "^6.0.1"
     cookie-parser "^1.4.5"
@@ -29,10 +29,10 @@
     recursive-readdir "^2.2.2"
     yaml "^1.10.2"
 
-"@magda/docker-utils@^0.0.60-rc.2":
-  version "0.0.60-rc.2"
-  resolved "https://registry.yarnpkg.com/@magda/docker-utils/-/docker-utils-0.0.60-rc.2.tgz#3de793bfcefd652ffb5f555410f6dea3acaad756"
-  integrity sha512-QWzTE3BriOdDFPyNsnYslj1fYYLagc0zjck8MNlhskZEOM/sXReUYUQsgQUaTXkI4W6JLI0anwdSetnePTVqBg==
+"@magda/docker-utils@^0.0.60":
+  version "0.0.60"
+  resolved "https://registry.yarnpkg.com/@magda/docker-utils/-/docker-utils-0.0.60.tgz#7e2002ebdb1472e3206c8e9b8f53730ac298dc33"
+  integrity sha512-jU6mYYeBPkm1cciDOiOqOlSn0Ru5BdhTkpL2qHq3nU+DMLNlgDCHD0sGyCm1iPRaDlo75igO200bFQAR1551pg==
   dependencies:
     fs-extra "^2.1.2"
     is-subdir "^1.0.2"
