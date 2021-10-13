@@ -33,7 +33,7 @@ jobs:
       - run: yarn test
 
       - name: helm-build-dependencies
-        run: helm dep up deploy/${REPO_NAME}
+        run: yarn update-all-charts
 
       - name: helm-check
         run: yarn helm-lint
