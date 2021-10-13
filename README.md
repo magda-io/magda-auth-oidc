@@ -12,7 +12,7 @@ Requires MAGDA version 0.0.58 or above.
 ```yaml
 - name: magda-auth-oidc
   alias: magda-auth-my-idp
-  version: 1.1.0
+  version: 1.2.1
   repository: https://charts.magda.io
 ```
 
