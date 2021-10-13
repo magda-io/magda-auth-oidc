@@ -47,6 +47,10 @@ gateway:
 
 The secret's name should match pattern `[alias name of the auth plugin]-secret`. If you didn't specify alias name for the auth plugin, the secret name should be `oidc-secret` by default.
 
+5. Setup at OIDC identity provider
+
+Supply url `https://[your magda domain]/auth/login/plugin/oidc/return` as login redirect url
+
 ## Requirements
 
 Kubernetes: `>= 1.14.0-0`
