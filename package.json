@@ -16,7 +16,7 @@
     "docker-build-local": "create-docker-context-for-node-component --build --push --tag auto --local",
     "docker-build-prod": "create-docker-context-for-node-component --build --push --tag auto",
     "helm-lint": "helm template deploy/magda-auth-oidc -f deploy/test-deploy.yaml 1>/dev/null",
-    "helm-docs": "helm-docs -t ./README.md.gotmpl -o ../../README.md",
+    "helm-docs": "docker run --rm -v \"$(pwd):/helm-docs\" -u $(id -u) jnorwood/helm-docs:v1.11.0 -t ./README.md.gotmpl -o ../../README.md",
     "update-all-charts": "helm dep up ./deploy/magda-auth-oidc",
     "add-all-chart-version-changes": "git ls-files -m | grep Chart.yaml | xargs git add && git ls-files -m | grep Chart.lock | xargs git add",
     "add-all-helm-docs-changes": "yarn helm-docs && git ls-files -m | grep -i readme.md | xargs git add",
