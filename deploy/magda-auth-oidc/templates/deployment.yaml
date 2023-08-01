@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
 spec:
+  {{- if not .Values.autoscaler.enabled }}
   replicas: {{ .Values.replicas | default 1 }}
+  {{- end }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -15,6 +17,7 @@ spec:
     metadata:
       annotations:
         checksum/authPluginConfig: {{ .Values.authPluginConfig | mustToRawJson | sha256sum }}
+        checksum/allowedExternalRedirectDomains: {{ .Values.global.authPluginAllowedExternalRedirectDomains | mustToRawJson | sha256sum }}
       labels:
         service: {{ .Chart.Name }}
     spec:
@@ -33,6 +36,7 @@ spec:
             "--externalUrl", {{ .Values.global.externalUrl | quote }},
             "--authPluginRedirectUrl", {{ .Values.authPluginRedirectUrl | default .Values.global.authPluginRedirectUrl | quote }},
             "--authApiUrl", "http://authorization-api/v0",
+            "--allowedExternalRedirectDomainsConfigJson", "/etc/{{ .Chart.Name }}-config/allowedExternalRedirectDomains.json",
             "--authPluginConfigJson", "/etc/{{ .Chart.Name }}-config/authPluginConfig.json",
             "--clientId", {{ .Values.clientId | required (printf "`clientId` is required for magda auth plugin `%s`." .Chart.Name) | quote }},
             {{- if .Values.scope }}

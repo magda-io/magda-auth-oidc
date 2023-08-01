@@ -16,12 +16,33 @@ import OpenIdClient, {
     UserinfoResponse
 } from "openid-client";
 import os from "os";
+import urijs from "urijs";
+
 const pkg = require("../package.json");
 
 const OIDC_DEFAULT_TIMEOUT = 10000;
 const OIDC_DEFAULT_MAX_CLOCK_SKEW = 120;
 const STRATEGY_NAME = "oidc";
 const DEFAULT_SCOPE = "openid profile email";
+
+function normalizeRedirectionUrl(
+    url: string,
+    allowedExternalRedirectDomains?: string[]
+) {
+    if (!url) {
+        return "/";
+    }
+    const allowedDomains = allowedExternalRedirectDomains?.length
+        ? allowedExternalRedirectDomains
+        : [];
+    const redirectUri = urijs(url);
+    const host = redirectUri.host();
+    if (!host || allowedDomains.indexOf(host) === -1) {
+        return redirectUri.resource();
+    } else {
+        return redirectUri.toString();
+    }
+}
 
 export interface AuthPluginRouterOptions {
     authorizationApi: ApiClient;
@@ -32,6 +53,7 @@ export interface AuthPluginRouterOptions {
     externalUrl: string;
     authPluginRedirectUrl: string;
     authPluginConfig: AuthPluginConfig;
+    allowedExternalRedirectDomains: string[];
     timeout?: number; // timeout of openid client. Default 10000 milseconds
     /**
      * Defaults to 120.
@@ -259,7 +281,11 @@ export default async function createAuthPluginRouter(
             res: express.Response,
             next: express.NextFunction
         ) => {
-            redirectOnSuccess(req.query.state as string, req, res);
+            redirectOnSuccess(
+                normalizeRedirectionUrl(req.query.state as string),
+                req,
+                res
+            );
         },
         (
             err: any,
@@ -267,7 +293,12 @@ export default async function createAuthPluginRouter(
             res: express.Response,
             next: express.NextFunction
         ): any => {
-            redirectOnError(err, req.query.state as string, req, res);
+            redirectOnError(
+                err,
+                normalizeRedirectionUrl(req.query.state as string),
+                req,
+                res
+            );
         }
     );
 
