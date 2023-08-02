@@ -92,6 +92,12 @@ const argv = yargs
         type: "string",
         required: true
     })
+    .option("disableLogoutEndpoint", {
+        describe:
+            "Whether to disable the logout endpoint. Optional. Default: false",
+        default: false,
+        type: "boolean"
+    })
     .option("clientSecret", {
         describe: "OIDC Client Secret",
         type: "string",
@@ -196,7 +202,9 @@ const authApiClient = new AuthApiClient(
             scope: argv?.scope,
             timeout: argv?.timeout,
             maxClockSkew: argv?.maxClockSkew,
-            allowedExternalRedirectDomains
+            allowedExternalRedirectDomains,
+            disableLogoutEndpoint: argv?.disableLogoutEndpoint,
+            sessionCookieOptions: argv.cookieJson as any
         });
         app.use(routes);
 

@@ -1,3 +1,7 @@
+# v2.0.1
+
+- add OpenID Connect RP-Initiated Logout 1.0 support
+
 # v2.0.0
 
 - Upgrade nodejs to version 14

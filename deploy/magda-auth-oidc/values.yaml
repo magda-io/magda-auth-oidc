@@ -135,3 +135,8 @@ timeout:
 # -- OIDC openid client clock skew tolerance (in seconds).
 # Default to 120 if not provided
 maxClockSkew:
+
+# -- Whether to disable the logout endpoint. Optional. Default: false.
+# If set to true, the logout endpoint will be disabled.
+# When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint.
+disableLogoutEndpoint: false
