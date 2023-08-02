@@ -1,3 +1,17 @@
+# v2.0.0
+
+- Upgrade nodejs to version 14
+- Upgrade other dependencies
+- Release all artifacts to GitHub Container Registry (instead of docker.io & https://charts.magda.io)
+- Upgrade magda-common chart version to v2.2.5
+- Build multi-arch docker images
+- add support to allowedExternalRedirectDomains config options
+- not set deployment replicas when autoscaler is on
+
+# v1.2.2
+
+- Fixed #1, timeout setting didn't apply to all HTTP connections
+
 # v1.2.1
 
 - Upgrade to magda-common lib chart v1.0.0-alpha.4
