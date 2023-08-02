@@ -4,7 +4,7 @@
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
-Requires MAGDA version 0.0.58 or above.
+Requires MAGDA version v2.0.0 or above.
 
 ### How to Use
 
@@ -12,12 +12,14 @@ Requires MAGDA version 0.0.58 or above.
 ```yaml
 - name: magda-auth-oidc
   alias: magda-auth-my-idp
-  version: 1.2.1
-  repository: https://charts.magda.io
+  version: "2.0.0" # or put the latest version number here
+  repository: "oci://ghcr.io/magda-io/charts"
 ```
 
 > Please note: `alias` field is optional. Its purpose is to give the helm chart an alias name (rather than the default `magda-auth-oidc`) so it's possible to use `magda-auth-oidc` plugins multiple times (for different idps) in your deployment.
 > When `alias` is not specified, you should reference its name as `magda-auth-oidc`.
+
+> Since v2.0.0, we use [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) as our official Helm Chart & Docker Image release registry.
 
 2. Config the auth plugin with OIDC client Id & issuer
 ```yaml
@@ -57,7 +59,7 @@ Kubernetes: `>= 1.14.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.magda.io | magda-common | 1.0.0-alpha.4 |
+| oci://ghcr.io/magda-io/charts | magda-common | 2.2.5 |
 
 ## Values
 
@@ -84,8 +86,9 @@ Kubernetes: `>= 1.14.0-0`
 | defaultAdminUserId | string | `"00000000-0000-4000-8000-000000000000"` | which system account we used to talk to auth api The value of this field will only be used when `global.defaultAdminUserId` has no value |
 | defaultImage.imagePullSecret | bool | `false` |  |
 | defaultImage.pullPolicy | string | `"IfNotPresent"` |  |
-| defaultImage.repository | string | `"docker.io/data61"` |  |
-| global | object | `{"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
+| defaultImage.repository | string | `"ghcr.io/magda-io"` |  |
+| global | object | `{"authPluginAllowedExternalRedirectDomains":[],"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
+| global.authPluginAllowedExternalRedirectDomains | list | `[]` | By default, at end of authentication process, an auth plugin will never redirect the user to an external domain,  even if `authPluginRedirectUrl` is configured to an URL with an external domain. Unless an external domain is added to the whitelist i.e. this `authPluginAllowedExternalRedirectDomains` config,  any auth plugins will always ignore the domain part of the url (if supplied) and only redirect the user to the URL path under the current domain. Please note: you add a url host string to this list. e.g. "abc.com:8080" |
 | image.name | string | `"magda-auth-oidc"` |  |
 | issuer | string | `nil` | OIDC issuer url. e.g. https://example.com or https://example.com/oidc A valid issuer url must has `/.well-known/openid-configuration` endpoint. i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible |
 | maxClockSkew | string | `nil` | OIDC openid client clock skew tolerance (in seconds). Default to 120 if not provided |
