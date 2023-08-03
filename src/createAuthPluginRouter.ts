@@ -20,6 +20,7 @@ import OpenIdClient, {
 } from "openid-client";
 import os from "os";
 import urijs from "urijs";
+import uuid from "uuid";
 
 const pkg = require("../package.json");
 
@@ -119,6 +120,9 @@ export interface AuthPluginRouterOptions {
      */
     scope?: string;
     sessionCookieOptions: CookieOptions;
+    // target magda org unit id
+    // when provided, the user will be assigned to this org unit
+    orgUnitId?: string;
 }
 
 /**
@@ -319,7 +323,13 @@ export default async function createAuthPluginRouter(
                 const userToken = await createOrGetUserToken(
                     authorizationApi,
                     userData,
-                    authPluginConfig.key
+                    authPluginConfig.key,
+                    uuid.validate(options?.orgUnitId)
+                        ? async (authApi, userData, profile) => ({
+                              ...userData,
+                              orgUnitId: options.orgUnitId
+                          })
+                        : undefined
                 );
 
                 const authPluginData: any = {

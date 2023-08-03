@@ -100,3 +100,4 @@ Kubernetes: `>= 1.14.0-0`
 | resources.requests.memory | string | `"30Mi"` |  |
 | scope | string | `nil` | OpenID Connect Scopes. Default to `openid profile email` if not provided. |
 | timeout | string | `nil` | OIDC openid client HTTP request timeout (in milseconds).  Default to 10000 if not provided. |
+| userDefaultOrgUnitId | string | `nil` | When a user login to the system for the first time, the user will be assigned to this org unit. If not provided, the user will be not be assigned to any org unit. Default: Nil |
