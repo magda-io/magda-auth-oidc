@@ -20,7 +20,7 @@ import OpenIdClient, {
 } from "openid-client";
 import os from "os";
 import urijs from "urijs";
-import uuid from "uuid";
+import { validate as uuidValidate } from "uuid";
 
 const pkg = require("../package.json");
 
@@ -324,7 +324,7 @@ export default async function createAuthPluginRouter(
                     authorizationApi,
                     userData,
                     authPluginConfig.key,
-                    uuid.validate(options?.orgUnitId)
+                    uuidValidate(options?.orgUnitId)
                         ? async (authApi, userData, profile) => ({
                               ...userData,
                               orgUnitId: options.orgUnitId
