@@ -79,7 +79,12 @@ function determineRedirectUrl(
         redirectUri = getAbsoluteUrl(req.query.redirect, externalUrl);
     }
 
-    if (useState && typeof req.query?.state === "string" && req.query.state) {
+    if (
+        useState &&
+        typeof req.query?.state === "string" &&
+        req.query.state &&
+        req.query.state.match(/[\/\.]+/i)
+    ) {
         redirectUri = getAbsoluteUrl(req.query.state, externalUrl);
     }
 
@@ -161,6 +166,7 @@ async function createOpenIdIssuerWithClient(
         options.issuer
     );
     const authPluginConfig = options.authPluginConfig;
+    const issuerUri = urijs(options.issuer);
 
     custom.setHttpOptionsDefaults({
         ...customizeUserAgent({}),
@@ -178,6 +184,24 @@ async function createOpenIdIssuerWithClient(
     const iss = await Issuer.discover(discoveryEndpoint);
 
     console.log("OIDC configuration:", iss.metadata);
+
+    // Somehow, auth0 will not include `end_session_endpoint` in OIDC discovery endpoint by default (unless you contact support)
+    // the `end_session_endpoint` does exist at https://YOUR_DOMAIN/oidc/logout though
+    if (
+        issuerUri.host().toLowerCase().endsWith("auth0.com") &&
+        !iss["end_session_endpoint"]
+    ) {
+        const auth0LogoutUrl = getAbsoluteUrl("/oidc/logout", options.issuer);
+        Object.defineProperty(iss, "end_session_endpoint", {
+            get() {
+                return auth0LogoutUrl;
+            },
+            enumerable: true
+        });
+        console.log(
+            `Patched auth0 issuer metadata with \`end_session_endpoint\` endpoint: ${auth0LogoutUrl}`
+        );
+    }
 
     const client = new iss.Client({
         client_id: options.clientId,
@@ -257,6 +281,8 @@ export default async function createAuthPluginRouter(
     const disableLogoutEndpoint = !issuer["end_session_endpoint"]
         ? true
         : options?.disableLogoutEndpoint === true;
+
+    console.log("RP-Initiated Logout feature is: " + !disableLogoutEndpoint);
 
     const oidcStrategy = new OpenIdClientStrategy(
         {
@@ -345,7 +371,7 @@ export default async function createAuthPluginRouter(
             next: express.NextFunction
         ) => {
             redirectOnSuccess(
-                normalizeRedirectionUrl(req.query.state as string),
+                determineRedirectUrl(req, options, true),
                 req,
                 res
             );
@@ -358,7 +384,7 @@ export default async function createAuthPluginRouter(
         ): any => {
             redirectOnError(
                 err,
-                normalizeRedirectionUrl(req.query.state as string),
+                determineRedirectUrl(req, options, true),
                 req,
                 res
             );
