@@ -140,3 +140,8 @@ maxClockSkew:
 # If set to true, the logout endpoint will be disabled.
 # When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint.
 disableLogoutEndpoint: false
+
+# -- When a user login to the system for the first time, the user will be assigned to this org unit.
+# If not provided, the user will be not be assigned to any org unit.
+# Default: Nil
+userDefaultOrgUnitId: 
