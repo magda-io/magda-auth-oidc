@@ -122,10 +122,10 @@ export interface AuthPluginRouterOptions {
     sessionCookieOptions: CookieOptions;
     // target magda org unit id
     // when provided, the user will be assigned to this org unit
-    orgUnitId?: string;
+    userDefaultOrgUnitId?: string;
     // target magda role id
     // when provided, the user will be granted this role
-    roleId?: string;
+    userDefaultRoleId?: string;
 }
 
 /**
@@ -254,6 +254,10 @@ function createNameFromProfile(profile: UserinfoResponse) {
     return profile.email;
 }
 
+const isValidRoleId = (id?: string) =>
+    typeof id === "string" &&
+    (uuidValidate(id) || id.match(/^\d{8}-\d{4}-\d{4}-\d{4}-\d{12}$/));
+
 export default async function createAuthPluginRouter(
     options: AuthPluginRouterOptions
 ): Promise<Router> {
@@ -283,6 +287,8 @@ export default async function createAuthPluginRouter(
     }
 
     console.log("scope settings: ", scope);
+    console.log(`Default user role ID: ${options?.userDefaultRoleId}`);
+    console.log(`Default user orgUnit ID: ${options?.userDefaultOrgUnitId}`);
 
     const [issuer, client] = await createOpenIdIssuerWithClient(options);
     const disableLogoutEndpoint = !issuer["end_session_endpoint"]
@@ -327,16 +333,16 @@ export default async function createAuthPluginRouter(
                     authorizationApi,
                     userData,
                     authPluginConfig.key,
-                    uuidValidate(options?.orgUnitId)
+                    uuidValidate(options?.userDefaultOrgUnitId)
                         ? async (authApi, userData, profile) => ({
                               ...userData,
-                              orgUnitId: options.orgUnitId
+                              orgUnitId: options.userDefaultOrgUnitId
                           })
                         : undefined,
-                    uuidValidate(options?.roleId)
+                    isValidRoleId(options?.userDefaultRoleId)
                         ? async (authApi, user, profile) => {
                               await authApi.addUserRoles(user.id, [
-                                  options.roleId
+                                  options.userDefaultRoleId
                               ]);
                           }
                         : undefined
