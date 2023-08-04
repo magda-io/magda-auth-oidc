@@ -48,6 +48,10 @@ spec:
             {{- if .Values.maxClockSkew }}
             "--maxClockSkew", {{ .Values.maxClockSkew | quote }},
             {{- end }}
+            {{- if .Values.userDefaultOrgUnitId }}
+            "--orgUnitId", {{ .Values.userDefaultOrgUnitId | quote }},
+            {{- end }}
+            "--disableLogoutEndpoint", {{ .Values.disableLogoutEndpoint | default false | quote }},
             "--issuer", {{ .Values.issuer | required (printf "`issuer` is required for magda auth plugin `%s`." .Chart.Name) | quote }}
         ]
         volumeMounts:

@@ -38,6 +38,11 @@ const argv = yargs
         type: "string",
         coerce: coerceJson
     })
+    .option("orgUnitId", {
+        describe:
+            "The target magda org unit id. When provided, all new users will be assigned to this org unit",
+        type: "string"
+    })
     .option("externalUrl", {
         describe: "The base external URL of the gateway.",
         type: "string",
@@ -91,6 +96,12 @@ const argv = yargs
         describe: "OIDC client Id",
         type: "string",
         required: true
+    })
+    .option("disableLogoutEndpoint", {
+        describe:
+            "Whether to disable the logout endpoint. Optional. Default: false",
+        default: false,
+        type: "boolean"
     })
     .option("clientSecret", {
         describe: "OIDC Client Secret",
@@ -196,7 +207,10 @@ const authApiClient = new AuthApiClient(
             scope: argv?.scope,
             timeout: argv?.timeout,
             maxClockSkew: argv?.maxClockSkew,
-            allowedExternalRedirectDomains
+            allowedExternalRedirectDomains,
+            disableLogoutEndpoint: argv?.disableLogoutEndpoint,
+            sessionCookieOptions: argv.cookieJson as any,
+            orgUnitId: argv?.orgUnitId
         });
         app.use(routes);
 

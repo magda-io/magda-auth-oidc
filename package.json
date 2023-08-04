@@ -31,6 +31,7 @@
     "@types/mocha": "^8.0.3",
     "@types/passport": "1.0.3",
     "@types/urijs": "^1.19.12",
+    "@types/uuid": "^9.0.2",
     "@types/yargs": "^15.0.9",
     "mocha": "^8.2.0",
     "rimraf": "^3.0.2",
@@ -45,6 +46,7 @@
     "openid-client": "3.12.2",
     "passport": "0.2.2",
     "urijs": "^1.19.11",
+    "uuid": "^9.0.0",
     "yargs": "^16.1.0"
   },
   "config": {

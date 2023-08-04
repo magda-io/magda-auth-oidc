@@ -51,7 +51,8 @@ The secret's name should match pattern `[alias name of the auth plugin]-secret`.
 
 5. Setup at OIDC identity provider
 
-Supply url `https://[your magda domain]/auth/login/plugin/oidc/return` as login redirect url
+- Supply url `https://[your magda domain]/auth/login/plugin/[alias name of the auth plugin]/return` as login redirect url.
+- Supply url `https://[your magda domain]/auth/login/plugin/[alias name of the auth plugin]/logout/return` as logout redirect url (Optional; Only for IDP supports [OpenID Connect RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)).
 
 ## Requirements
 
@@ -87,6 +88,7 @@ Kubernetes: `>= 1.14.0-0`
 | defaultImage.imagePullSecret | bool | `false` |  |
 | defaultImage.pullPolicy | string | `"IfNotPresent"` |  |
 | defaultImage.repository | string | `"ghcr.io/magda-io"` |  |
+| disableLogoutEndpoint | bool | `false` | Whether to disable the logout endpoint. Optional. Default: false. If set to true, the logout endpoint will be disabled. When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint. |
 | global | object | `{"authPluginAllowedExternalRedirectDomains":[],"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | global.authPluginAllowedExternalRedirectDomains | list | `[]` | By default, at end of authentication process, an auth plugin will never redirect the user to an external domain,  even if `authPluginRedirectUrl` is configured to an URL with an external domain. Unless an external domain is added to the whitelist i.e. this `authPluginAllowedExternalRedirectDomains` config,  any auth plugins will always ignore the domain part of the url (if supplied) and only redirect the user to the URL path under the current domain. Please note: you add a url host string to this list. e.g. "abc.com:8080" |
 | image.name | string | `"magda-auth-oidc"` |  |
@@ -98,3 +100,4 @@ Kubernetes: `>= 1.14.0-0`
 | resources.requests.memory | string | `"30Mi"` |  |
 | scope | string | `nil` | OpenID Connect Scopes. Default to `openid profile email` if not provided. |
 | timeout | string | `nil` | OIDC openid client HTTP request timeout (in milseconds).  Default to 10000 if not provided. |
+| userDefaultOrgUnitId | string | `nil` | When a user login to the system for the first time, the user will be assigned to this org unit. If not provided, the user will be not be assigned to any org unit. Default: Nil |

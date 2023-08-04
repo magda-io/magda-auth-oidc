@@ -6,17 +6,21 @@ import {
     getAbsoluteUrl,
     redirectOnSuccess,
     redirectOnError,
-    createOrGetUserToken
+    createOrGetUserToken,
+    destroyMagdaSession,
+    CookieOptions
 } from "@magda/authentication-plugin-sdk";
 import OpenIdClient, {
     Issuer,
     custom,
     Strategy as OpenIdClientStrategy,
     TokenSet,
-    UserinfoResponse
+    UserinfoResponse,
+    Client
 } from "openid-client";
 import os from "os";
 import urijs from "urijs";
+import { validate as uuidValidate } from "uuid";
 
 const pkg = require("../package.json");
 
@@ -44,6 +48,53 @@ function normalizeRedirectionUrl(
     }
 }
 
+/**
+ * Determine redirect url based on req & authPluginRedirectUrl config.
+ *
+ * @param {express.Request} req
+ * @param {string} authPluginRedirectUrl
+ * @param {string} [externalUrl] optional; If provided, will attempt to convert the url into an absolute url.
+ *  Otherwise, leave as it is.
+ * @return {*}  {string}
+ */
+function determineRedirectUrl(
+    req: express.Request,
+    configOptions: AuthPluginRouterOptions,
+    useState: boolean = false
+): string {
+    const externalUrl = configOptions.externalUrl;
+    const authPluginRedirectUrl = configOptions.authPluginRedirectUrl;
+
+    const resultRedirectionUrl = getAbsoluteUrl(
+        authPluginRedirectUrl,
+        externalUrl
+    );
+
+    let redirectUri = resultRedirectionUrl;
+
+    if (
+        !useState &&
+        typeof req?.query?.redirect === "string" &&
+        req.query.redirect
+    ) {
+        redirectUri = getAbsoluteUrl(req.query.redirect, externalUrl);
+    }
+
+    if (
+        useState &&
+        typeof req.query?.state === "string" &&
+        req.query.state &&
+        req.query.state.match(/[\/\.]+/i)
+    ) {
+        redirectUri = getAbsoluteUrl(req.query.state, externalUrl);
+    }
+
+    return normalizeRedirectionUrl(
+        redirectUri,
+        configOptions?.allowedExternalRedirectDomains
+    );
+}
+
 export interface AuthPluginRouterOptions {
     authorizationApi: ApiClient;
     passport: Authenticator;
@@ -54,6 +105,7 @@ export interface AuthPluginRouterOptions {
     authPluginRedirectUrl: string;
     authPluginConfig: AuthPluginConfig;
     allowedExternalRedirectDomains: string[];
+    disableLogoutEndpoint?: boolean;
     timeout?: number; // timeout of openid client. Default 10000 milseconds
     /**
      * Defaults to 120.
@@ -67,6 +119,10 @@ export interface AuthPluginRouterOptions {
      * For a list of scopes and claims, please refer to your provider document
      */
     scope?: string;
+    sessionCookieOptions: CookieOptions;
+    // target magda org unit id
+    // when provided, the user will be assigned to this org unit
+    orgUnitId?: string;
 }
 
 /**
@@ -102,7 +158,9 @@ function customizeUserAgent(options: OpenIdClient.HttpOptions) {
     return options;
 }
 
-async function createOpenIdClient(options: AuthPluginRouterOptions) {
+async function createOpenIdIssuerWithClient(
+    options: AuthPluginRouterOptions
+): Promise<[Issuer<OpenIdClient.Client>, Client]> {
     console.log("Creating OpenId Client...");
 
     const externalUrl = options.externalUrl;
@@ -112,6 +170,7 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
         options.issuer
     );
     const authPluginConfig = options.authPluginConfig;
+    const issuerUri = urijs(options.issuer);
 
     custom.setHttpOptionsDefaults({
         ...customizeUserAgent({}),
@@ -129,6 +188,24 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
     const iss = await Issuer.discover(discoveryEndpoint);
 
     console.log("OIDC configuration:", iss.metadata);
+
+    // Somehow, auth0 will not include `end_session_endpoint` in OIDC discovery endpoint by default (unless you contact support)
+    // the `end_session_endpoint` does exist at https://YOUR_DOMAIN/oidc/logout though
+    if (
+        issuerUri.host().toLowerCase().endsWith("auth0.com") &&
+        !iss["end_session_endpoint"]
+    ) {
+        const auth0LogoutUrl = getAbsoluteUrl("/oidc/logout", options.issuer);
+        Object.defineProperty(iss, "end_session_endpoint", {
+            get() {
+                return auth0LogoutUrl;
+            },
+            enumerable: true
+        });
+        console.log(
+            `Patched auth0 issuer metadata with \`end_session_endpoint\` endpoint: ${auth0LogoutUrl}`
+        );
+    }
 
     const client = new iss.Client({
         client_id: options.clientId,
@@ -154,7 +231,7 @@ async function createOpenIdClient(options: AuthPluginRouterOptions) {
     console.log("clock_tolerance Setting: ", client[custom.clock_tolerance]);
     console.log("OpenId Client Created!");
 
-    return client;
+    return [iss, client];
 }
 
 function createNameFromProfile(profile: UserinfoResponse) {
@@ -183,12 +260,9 @@ export default async function createAuthPluginRouter(
     const clientSecret = options.clientSecret;
     const externalUrl = options.externalUrl;
     const authPluginConfig = options.authPluginConfig;
-    const resultRedirectionUrl = getAbsoluteUrl(
-        options.authPluginRedirectUrl,
-        externalUrl
-    );
+    const sessionCookieOptions = options.sessionCookieOptions;
 
-    const issuer = options?.issuer;
+    const issuerUrl = options?.issuer;
     const scope = options.scope ? options.scope : DEFAULT_SCOPE;
 
     if (!clientId) {
@@ -199,7 +273,7 @@ export default async function createAuthPluginRouter(
         throw new Error("Required client secret can't be empty!");
     }
 
-    if (!issuer) {
+    if (!issuerUrl) {
         throw new Error(
             "Required issuer url: (options.issuer) can't be empty!"
         );
@@ -207,7 +281,12 @@ export default async function createAuthPluginRouter(
 
     console.log("scope settings: ", scope);
 
-    const client = await createOpenIdClient(options);
+    const [issuer, client] = await createOpenIdIssuerWithClient(options);
+    const disableLogoutEndpoint = !issuer["end_session_endpoint"]
+        ? true
+        : options?.disableLogoutEndpoint === true;
+
+    console.log("RP-Initiated Logout feature is: " + !disableLogoutEndpoint);
 
     const oidcStrategy = new OpenIdClientStrategy(
         {
@@ -216,7 +295,7 @@ export default async function createAuthPluginRouter(
             },
             client
         },
-        (
+        async (
             tokenSet: TokenSet,
             profile: UserinfoResponse,
             done: (err: any, user?: any) => void
@@ -240,13 +319,36 @@ export default async function createAuthPluginRouter(
                 emails: [{ value: profile.email }]
             };
 
-            createOrGetUserToken(
-                authorizationApi,
-                userData,
-                authPluginConfig.key
-            )
-                .then((userToken) => done(null, userToken))
-                .catch((error) => done(error));
+            try {
+                const userToken = await createOrGetUserToken(
+                    authorizationApi,
+                    userData,
+                    authPluginConfig.key,
+                    uuidValidate(options?.orgUnitId)
+                        ? async (authApi, userData, profile) => ({
+                              ...userData,
+                              orgUnitId: options.orgUnitId
+                          })
+                        : undefined
+                );
+
+                const authPluginData: any = {
+                    key: authPluginConfig.key,
+                    tokenSet
+                };
+
+                if (!disableLogoutEndpoint) {
+                    // when logout endpoint is available, set `logoutUrl` so the gateway will forward logout request to authPlugin
+                    authPluginData.logoutUrl = `/auth/login/plugin/${authPluginConfig.key}/logout`;
+                }
+
+                done(null, {
+                    ...userToken,
+                    authPlugin: authPluginData
+                });
+            } catch (error) {
+                done(error);
+            }
         }
     );
 
@@ -257,10 +359,7 @@ export default async function createAuthPluginRouter(
     router.get("/", (req, res, next) => {
         const opts: any = {
             scope,
-            state:
-                typeof req?.query?.redirect === "string" && req.query.redirect
-                    ? getAbsoluteUrl(req.query.redirect, externalUrl)
-                    : resultRedirectionUrl
+            state: determineRedirectUrl(req, options)
         };
         passport.authenticate(STRATEGY_NAME, opts)(req, res, next);
     });
@@ -282,7 +381,7 @@ export default async function createAuthPluginRouter(
             next: express.NextFunction
         ) => {
             redirectOnSuccess(
-                normalizeRedirectionUrl(req.query.state as string),
+                determineRedirectUrl(req, options, true),
                 req,
                 res
             );
@@ -295,10 +394,62 @@ export default async function createAuthPluginRouter(
         ): any => {
             redirectOnError(
                 err,
-                normalizeRedirectionUrl(req.query.state as string),
+                determineRedirectUrl(req, options, true),
                 req,
                 res
             );
+        }
+    );
+
+    if (disableLogoutEndpoint) {
+        return router;
+    }
+
+    router.get(
+        "/logout",
+        async (
+            req: express.Request,
+            res: express.Response,
+            next: express.NextFunction
+        ) => {
+            const idToken = (req?.user as any)?.authPlugin?.tokenSet?.id_token;
+            // no matter what, attempt to destroy magda session first
+            // this function is safe to call even when session doesn't exist
+            await destroyMagdaSession(req, res, sessionCookieOptions);
+            if (!idToken) {
+                // can't find tokenSet from session
+                // likely already signed off
+                // redirect user agent back
+                res.redirect(determineRedirectUrl(req, options));
+            } else {
+                // notify idP
+                const redirectUrl = determineRedirectUrl(req, options);
+
+                res.redirect(
+                    client.endSessionUrl({
+                        id_token_hint: idToken,
+                        state: redirectUrl,
+                        post_logout_redirect_uri: getAbsoluteUrl(
+                            `/auth/login/plugin/${authPluginConfig.key}/logout/return`,
+                            externalUrl
+                        )
+                    })
+                );
+            }
+        }
+    );
+
+    router.get(
+        "/logout/return",
+        async (
+            req: express.Request,
+            res: express.Response,
+            next: express.NextFunction
+        ) => {
+            if (req?.user) {
+                await destroyMagdaSession(req, res, sessionCookieOptions);
+            }
+            res.redirect(determineRedirectUrl(req, options, true));
         }
     );
 

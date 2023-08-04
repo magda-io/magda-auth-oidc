@@ -53,7 +53,8 @@ The secret's name should match pattern `[alias name of the auth plugin]-secret`.
 
 5. Setup at OIDC identity provider
 
-Supply url `https://[your magda domain]/auth/login/plugin/oidc/return` as login redirect url
+- Supply url `https://[your magda domain]/auth/login/plugin/[alias name of the auth plugin]/return` as login redirect url.
+- Supply url `https://[your magda domain]/auth/login/plugin/[alias name of the auth plugin]/logout/return` as logout redirect url (Optional; Only for IDP supports [OpenID Connect RP-Initiated Logout 1.0](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)).
 
 {{ template "chart.maintainersSection" . }}
 
