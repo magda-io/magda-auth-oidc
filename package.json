@@ -1,6 +1,6 @@
 {
   "name": "magda-auth-oidc",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A Generic Magda Authentication Plugin for OpenID Connect",
   "repository": "https://github.com/magda-io/magda-auth-oidc.git",
   "author": "Jacky Jiang",
