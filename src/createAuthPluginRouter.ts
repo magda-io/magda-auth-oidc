@@ -123,6 +123,9 @@ export interface AuthPluginRouterOptions {
     // target magda org unit id
     // when provided, the user will be assigned to this org unit
     orgUnitId?: string;
+    // target magda role id
+    // when provided, the user will be granted this role
+    roleId?: string;
 }
 
 /**
@@ -329,6 +332,13 @@ export default async function createAuthPluginRouter(
                               ...userData,
                               orgUnitId: options.orgUnitId
                           })
+                        : undefined,
+                    uuidValidate(options?.roleId)
+                        ? async (authApi, user, profile) => {
+                              await authApi.addUserRoles(user.id, [
+                                  options.roleId
+                              ]);
+                          }
                         : undefined
                 );
 

@@ -43,6 +43,11 @@ const argv = yargs
             "The target magda org unit id. When provided, all new users will be assigned to this org unit",
         type: "string"
     })
+    .option("roleId", {
+        describe:
+            "The target magda role id. When provided, all new users will be grant this role",
+        type: "string"
+    })
     .option("externalUrl", {
         describe: "The base external URL of the gateway.",
         type: "string",
@@ -210,7 +215,8 @@ const authApiClient = new AuthApiClient(
             allowedExternalRedirectDomains,
             disableLogoutEndpoint: argv?.disableLogoutEndpoint,
             sessionCookieOptions: argv.cookieJson as any,
-            orgUnitId: argv?.orgUnitId
+            orgUnitId: argv?.orgUnitId,
+            roleId: argv?.roleId
         });
         app.use(routes);
 

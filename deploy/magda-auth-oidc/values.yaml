@@ -145,3 +145,8 @@ disableLogoutEndpoint: false
 # If not provided, the user will be not be assigned to any org unit.
 # Default: Nil
 userDefaultOrgUnitId: 
+
+# -- When a user login to the system for the first time, the user will be granted this role.
+# If not provided, the user will be not be granted any role.
+# Default: Nil
+userDefaultRoleId: 
