@@ -49,7 +49,10 @@ spec:
             "--maxClockSkew", {{ .Values.maxClockSkew | quote }},
             {{- end }}
             {{- if .Values.userDefaultOrgUnitId }}
-            "--orgUnitId", {{ .Values.userDefaultOrgUnitId | quote }},
+            "--userDefaultOrgUnitId", {{ .Values.userDefaultOrgUnitId | quote }},
+            {{- end }}
+            {{- if .Values.userDefaultRoleId }}
+            "--userDefaultRoleId", {{ .Values.userDefaultRoleId | quote }},
             {{- end }}
             "--disableLogoutEndpoint", {{ .Values.disableLogoutEndpoint | default false | quote }},
             "--issuer", {{ .Values.issuer | required (printf "`issuer` is required for magda auth plugin `%s`." .Chart.Name) | quote }}
