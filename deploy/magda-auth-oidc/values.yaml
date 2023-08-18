@@ -150,3 +150,13 @@ userDefaultOrgUnitId:
 # If not provided, the user will be not be granted any role.
 # Default: Nil
 userDefaultRoleId: 
+
+# -- When this option is set to true, the auth plugin will automatically map the user's Magda org unit based on the user's OIDC claims.
+# The mapping is done by matching the user's OIDC claim value `org_name` with the corresponding Magda org unit's name.
+# If the mapping is successful, the user will be assigned to the Magda org unit.
+# If a Magda org unit with the same name does not exist, the auth plugin will create a new Magda org unit with the name and assign the user to the new org unit.
+# The newly created org unit will be assigned to the default root org unit.
+# If the OIDC claim field `org_name` doesn't exist in the ID token, the user will NOT allowed to login and an error will be returned, only if `userDefaultOrgUnitId` is not set.
+# Otherwise, the user will be assigned to the org unit specified by `userDefaultOrgUnitId`.
+# The org mapping process will only happen when the user login to the system for the first time.
+autoMapOrg: false

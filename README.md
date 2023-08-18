@@ -1,6 +1,6 @@
 # magda-auth-oidc
 
-![Version: 2.0.2](https://img.shields.io/badge/Version-2.0.2-informational?style=flat-square)
+![Version: 2.0.3](https://img.shields.io/badge/Version-2.0.3-informational?style=flat-square)
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
@@ -79,6 +79,7 @@ Kubernetes: `>= 1.14.0-0`
 | authPluginConfig.qrCodeExtraInfoHeading | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". If present, will displayed the heading underneath the QR Code image to provide extra instruction to users. e.g. how to download moile app to scan the QR Code |
 | authPluginConfig.qrCodeImgDataRequestUrl | string | `""` | Only applicable & compulsory when authenticationMethod = "QR-CODE". The url that is used by frontend client to request auth challenge data from the authentication plugin. See [Authentication Plugin Specification](https://github.com/magda-io/magda/blob/master/docs/docs/authentication-plugin-spec.md) for more details |
 | authPluginRedirectUrl | string | `nil` | the redirection url after the whole authentication process is completed. Authentication Plugins will use this value as default. The following query paramaters can be used to supply the authentication result: <ul> <li>result: (string) Compulsory. Possible value: "success" or "failure". </li> <li>errorMessage: (string) Optional. Text message to provide more information on the error to the user. </li> </ul> This field is for overriding the value set by `global.authPluginRedirectUrl`. Unless you want to have a different value only for this auth plugin, you shouldn't set this value. |
+| autoMapOrg | bool | `false` | When this option is set to true, the auth plugin will automatically map the user's Magda org unit based on the user's OIDC claims. The mapping is done by matching the user's OIDC claim value `org_name` with the corresponding Magda org unit's name. If the mapping is successful, the user will be assigned to the Magda org unit. If a Magda org unit with the same name does not exist, the auth plugin will create a new Magda org unit with the name and assign the user to the new org unit. The newly created org unit will be assigned to the default root org unit. If the OIDC claim field `org_name` doesn't exist in the ID token, the user will NOT allowed to login and an error will be returned, only if `userDefaultOrgUnitId` is not set. Otherwise, the user will be assigned to the org unit specified by `userDefaultOrgUnitId`. The org mapping process will only happen when the user login to the system for the first time. |
 | autoscaler.enabled | bool | `false` | turn on the autoscaler or not |
 | autoscaler.maxReplicas | int | `3` |  |
 | autoscaler.minReplicas | int | `1` |  |

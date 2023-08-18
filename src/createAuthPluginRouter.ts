@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import passport, { Authenticator } from "passport";
-import { default as ApiClient } from "@magda/auth-api-client";
+import { default as ApiClient, User } from "@magda/auth-api-client";
+import AuthApiClient from "@magda/auth-api-client";
 import {
     AuthPluginConfig,
     getAbsoluteUrl,
@@ -105,7 +106,7 @@ export interface AuthPluginRouterOptions {
     authPluginRedirectUrl: string;
     authPluginConfig: AuthPluginConfig;
     allowedExternalRedirectDomains: string[];
-    disableLogoutEndpoint?: boolean;
+    disableLogoutEndpoint: boolean;
     timeout?: number; // timeout of openid client. Default 10000 milseconds
     /**
      * Defaults to 120.
@@ -126,6 +127,7 @@ export interface AuthPluginRouterOptions {
     // target magda role id
     // when provided, the user will be granted this role
     userDefaultRoleId?: string;
+    autoMapOrg: boolean;
 }
 
 /**
@@ -268,6 +270,7 @@ export default async function createAuthPluginRouter(
     const externalUrl = options.externalUrl;
     const authPluginConfig = options.authPluginConfig;
     const sessionCookieOptions = options.sessionCookieOptions;
+    const autoMapOrg = options.autoMapOrg;
 
     const issuerUrl = options?.issuer;
     const scope = options.scope ? options.scope : DEFAULT_SCOPE;
@@ -289,6 +292,7 @@ export default async function createAuthPluginRouter(
     console.log("scope settings: ", scope);
     console.log(`Default user role ID: ${options?.userDefaultRoleId}`);
     console.log(`Default user orgUnit ID: ${options?.userDefaultOrgUnitId}`);
+    console.log(`Auto Map User Org: ${autoMapOrg}`);
 
     const [issuer, client] = await createOpenIdIssuerWithClient(options);
     const disableLogoutEndpoint = !issuer["end_session_endpoint"]
@@ -317,6 +321,29 @@ export default async function createAuthPluginRouter(
                 );
             }
 
+            const hasUserDefaultOrgUnitId = uuidValidate(
+                options?.userDefaultOrgUnitId
+            );
+            const org_name = profile?.["org_name"] as string;
+            const org_id = profile?.["org_id"] as string;
+            if (autoMapOrg && !hasUserDefaultOrgUnitId && !org_name) {
+                // we rely on the `org_name` claim to map the user to an organization
+                // unless `userDefaultOrgUnitId` option is provided (which indicate the user without `org_name` claim should be mapped to `userDefaultOrgUnitId`)
+                // otherwise, we should always throw an error if `org_name` claim is not present.
+                const error = !org_id
+                    ? // if `org_id` claim is not present, the user is not a member of an organization.
+                      // the admin should add the user to an organization in identity store before the user can sign in.
+                      new Error(
+                          "Only members of an organization is allowed to sign in."
+                      )
+                    : // otherwise, the `org_name` claim is missing for technical reason.
+                      // e.g. auth0 requires the admin to turn on the "Allow Organisation Names in Authentication API" option.
+                      new Error(
+                          "Cannot locate `org_name` claim from the user ID token."
+                      );
+                return done(error);
+            }
+
             const userData: passport.Profile = {
                 id: profile?.sub,
                 provider: authPluginConfig.key,
@@ -328,24 +355,76 @@ export default async function createAuthPluginRouter(
                 emails: [{ value: profile.email }]
             };
 
+            const beforeUserCreated =
+                hasUserDefaultOrgUnitId || autoMapOrg
+                    ? async (
+                          authApi: AuthApiClient,
+                          userData: User,
+                          profile: passport.Profile
+                      ) => {
+                          if (!autoMapOrg) {
+                              return {
+                                  ...userData,
+                                  orgUnitId: options.userDefaultOrgUnitId
+                              };
+                          } else {
+                              if (!org_name) {
+                                  return {
+                                      ...userData,
+                                      orgUnitId: options.userDefaultOrgUnitId
+                                  };
+                              } else {
+                                  const orgUnits =
+                                      await authApi.getOrgUnitsByName(org_name);
+                                  if (!orgUnits?.length) {
+                                      const rootOrgUnit =
+                                          await authApi.getRootOrgUnit();
+                                      const newNode =
+                                          await authApi.createOrgNode(
+                                              rootOrgUnit.id,
+                                              {
+                                                  name: org_name,
+                                                  description: `auto-created org unit ${
+                                                      org_id
+                                                          ? `(org_id: ${org_id})`
+                                                          : ""
+                                                  }`
+                                              }
+                                          );
+                                      return {
+                                          ...userData,
+                                          orgUnitId: newNode.id
+                                      };
+                                  } else {
+                                      return {
+                                          ...userData,
+                                          orgUnitId: orgUnits[0].id
+                                      };
+                                  }
+                              }
+                          }
+                      }
+                    : undefined;
+
+            const afterUserCreated = isValidRoleId(options?.userDefaultRoleId)
+                ? async (
+                      authApi: AuthApiClient,
+                      user: User,
+                      profile: passport.Profile
+                  ) => {
+                      await authApi.addUserRoles(user.id, [
+                          options.userDefaultRoleId
+                      ]);
+                  }
+                : undefined;
+
             try {
                 const userToken = await createOrGetUserToken(
                     authorizationApi,
                     userData,
                     authPluginConfig.key,
-                    uuidValidate(options?.userDefaultOrgUnitId)
-                        ? async (authApi, userData, profile) => ({
-                              ...userData,
-                              orgUnitId: options.userDefaultOrgUnitId
-                          })
-                        : undefined,
-                    isValidRoleId(options?.userDefaultRoleId)
-                        ? async (authApi, user, profile) => {
-                              await authApi.addUserRoles(user.id, [
-                                  options.userDefaultRoleId
-                              ]);
-                          }
-                        : undefined
+                    beforeUserCreated,
+                    afterUserCreated
                 );
 
                 const authPluginData: any = {

@@ -1,8 +1,15 @@
+# v2.0.3
+
+- Add `autoMapOrg` feature to map user to Magda orgUnit based on `org_name` claim.
+
+# v2.0.2
+
+- #8: allow specify the default Magda role id that the user should be granted when logged in for the first time
+
 # v2.0.1
 
 - add OpenID Connect RP-Initiated Logout 1.0 support
 - allow specify the default Magda orgUnit id that the user should be assigned to when logged in for the first time
-- #8: allow specify the default Magda role id that the user should be granted when logged in for the first time
 
 # v2.0.0
 
