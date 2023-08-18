@@ -108,6 +108,12 @@ const argv = yargs
         default: false,
         type: "boolean"
     })
+    .option("autoMapOrg", {
+        describe:
+            "Whether to auto map user org unit. Optional. Default: false",
+        default: false,
+        type: "boolean"
+    })
     .option("clientSecret", {
         describe: "OIDC Client Secret",
         type: "string",
@@ -213,10 +219,11 @@ const authApiClient = new AuthApiClient(
             timeout: argv?.timeout,
             maxClockSkew: argv?.maxClockSkew,
             allowedExternalRedirectDomains,
-            disableLogoutEndpoint: argv?.disableLogoutEndpoint,
+            disableLogoutEndpoint: argv.disableLogoutEndpoint,
             sessionCookieOptions: argv.cookieJson as any,
             userDefaultOrgUnitId: argv?.userDefaultOrgUnitId,
-            userDefaultRoleId: argv?.userDefaultRoleId
+            userDefaultRoleId: argv?.userDefaultRoleId,
+            autoMapOrg: argv.autoMapOrg
         });
         app.use(routes);
 
