@@ -108,6 +108,12 @@ const argv = yargs
         default: false,
         type: "boolean"
     })
+    .option("forceEnableLogoutEndpoint", {
+        describe:
+            "Whether to force enable logout endpoint. Mainly for auth0 who didn't return logout in Well-Known Configuration Endpoint. Optional. Default: false",
+        default: false,
+        type: "boolean"
+    })
     .option("autoMapOrg", {
         describe:
             "Whether to auto map user org unit. Optional. Default: false",
@@ -223,7 +229,8 @@ const authApiClient = new AuthApiClient(
             sessionCookieOptions: argv.cookieJson as any,
             userDefaultOrgUnitId: argv?.userDefaultOrgUnitId,
             userDefaultRoleId: argv?.userDefaultRoleId,
-            autoMapOrg: argv.autoMapOrg
+            autoMapOrg: argv.autoMapOrg,
+            forceEnableLogoutEndpoint: argv.forceEnableLogoutEndpoint
         });
         app.use(routes);
 

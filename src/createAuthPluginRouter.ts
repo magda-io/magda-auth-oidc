@@ -107,6 +107,7 @@ export interface AuthPluginRouterOptions {
     authPluginConfig: AuthPluginConfig;
     allowedExternalRedirectDomains: string[];
     disableLogoutEndpoint: boolean;
+    forceEnableLogoutEndpoint: boolean;
     timeout?: number; // timeout of openid client. Default 10000 milseconds
     /**
      * Defaults to 120.
@@ -175,6 +176,7 @@ async function createOpenIdIssuerWithClient(
         options.issuer
     );
     const authPluginConfig = options.authPluginConfig;
+    const forceEnableLogoutEndpoint = options.forceEnableLogoutEndpoint;
     const issuerUri = urijs(options.issuer);
 
     custom.setHttpOptionsDefaults({
@@ -196,8 +198,11 @@ async function createOpenIdIssuerWithClient(
 
     // Somehow, auth0 will not include `end_session_endpoint` in OIDC discovery endpoint by default (unless you contact support)
     // the `end_session_endpoint` does exist at https://YOUR_DOMAIN/oidc/logout though
+    // when `forceEnableLogoutEndpoint` = true, we will patch the issuer metadata as well.
+    // it's for use case when users use auth0 custom domain.
     if (
-        issuerUri.host().toLowerCase().endsWith("auth0.com") &&
+        (forceEnableLogoutEndpoint ||
+            issuerUri.host().toLowerCase().endsWith("auth0.com")) &&
         !iss["end_session_endpoint"]
     ) {
         const auth0LogoutUrl = getAbsoluteUrl("/oidc/logout", options.issuer);
@@ -208,7 +213,7 @@ async function createOpenIdIssuerWithClient(
             enumerable: true
         });
         console.log(
-            `Patched auth0 issuer metadata with \`end_session_endpoint\` endpoint: ${auth0LogoutUrl}`
+            `Patched issuer metadata with \`end_session_endpoint\` endpoint: ${auth0LogoutUrl}`
         );
     }
 

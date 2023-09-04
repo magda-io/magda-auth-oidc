@@ -1,3 +1,7 @@
+# v2.0.4
+
+- #14 add `forceEnableLogoutEndpoint` config option for the use case where auth0 users use custom domains
+
 # v2.0.3
 
 - Add `autoMapOrg` feature to map user to Magda orgUnit based on `org_name` claim.
