@@ -141,6 +141,14 @@ maxClockSkew:
 # When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint.
 disableLogoutEndpoint: false
 
+# -- Whether to force enable the logout endpoint. Optional. Default: false.
+# Some providers (e.g. auth0) do not show the `end_session_endpoint` endpoint via OIDC well-known config endpoint, 
+# but they do support the `end_session_endpoint` endpoint. 
+# For those providers, you can set this option to `true`` to force enable the logout endpoint by patching the OIDC well-known config endpoint response.
+# When the issuer url domain is `auth0.com`, we will auto turn on this feature even if this option is not set to `true`.
+# This option is often for use case where users use auth0 custom domain.
+forceEnableLogoutEndpoint: false
+
 # -- When a user login to the system for the first time, the user will be assigned to this org unit.
 # If not provided, the user will be not be assigned to any org unit.
 # Default: Nil

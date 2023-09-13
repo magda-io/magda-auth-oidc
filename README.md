@@ -1,6 +1,6 @@
 # magda-auth-oidc
 
-![Version: 2.0.3](https://img.shields.io/badge/Version-2.0.3-informational?style=flat-square)
+![Version: 2.0.4](https://img.shields.io/badge/Version-2.0.4-informational?style=flat-square)
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
@@ -90,6 +90,7 @@ Kubernetes: `>= 1.14.0-0`
 | defaultImage.pullPolicy | string | `"IfNotPresent"` |  |
 | defaultImage.repository | string | `"ghcr.io/magda-io"` |  |
 | disableLogoutEndpoint | bool | `false` | Whether to disable the logout endpoint. Optional. Default: false. If set to true, the logout endpoint will be disabled. When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint. |
+| forceEnableLogoutEndpoint | bool | `false` | Whether to force enable the logout endpoint. Optional. Default: false. Some providers (e.g. auth0) do not show the `end_session_endpoint` endpoint via OIDC well-known config endpoint,  but they do support the `end_session_endpoint` endpoint.  For those providers, you can set this option to `true`` to force enable the logout endpoint by patching the OIDC well-known config endpoint response. When the issuer url domain is `auth0.com`, we will auto turn on this feature even if this option is not set to `true`. This option is often for use case where users use auth0 custom domain. |
 | global | object | `{"authPluginAllowedExternalRedirectDomains":[],"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | global.authPluginAllowedExternalRedirectDomains | list | `[]` | By default, at end of authentication process, an auth plugin will never redirect the user to an external domain,  even if `authPluginRedirectUrl` is configured to an URL with an external domain. Unless an external domain is added to the whitelist i.e. this `authPluginAllowedExternalRedirectDomains` config,  any auth plugins will always ignore the domain part of the url (if supplied) and only redirect the user to the URL path under the current domain. Please note: you add a url host string to this list. e.g. "abc.com:8080" |
 | image.name | string | `"magda-auth-oidc"` |  |

@@ -60,6 +60,9 @@ spec:
             {{- if .Values.disableLogoutEndpoint }}
             "--disableLogoutEndpoint", {{ .Values.disableLogoutEndpoint | quote }},
             {{- end }}
+            {{- if .Values.forceEnableLogoutEndpoint }}
+            "--forceEnableLogoutEndpoint", {{ .Values.forceEnableLogoutEndpoint | quote }},
+            {{- end }}
             "--issuer", {{ .Values.issuer | required (printf "`issuer` is required for magda auth plugin `%s`." .Chart.Name) | quote }}
         ]
         volumeMounts:
