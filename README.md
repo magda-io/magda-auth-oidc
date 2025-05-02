@@ -47,7 +47,7 @@ gateway:
 
 4. Create a secret in your deployment Magda namespace with the correct value for `client-secret` key
 
-The secret's name should match pattern `[alias name of the auth plugin]-secret`. If you didn't specify alias name for the auth plugin, the secret name should be `oidc-secret` by default.
+The secret's name should match pattern `[alias name of the auth plugin]-secret`. If you didn't specify alias name for the auth plugin, the secret name should be `magda-auth-oidc-secret` by default.
 
 5. Setup at OIDC identity provider
 
