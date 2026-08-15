@@ -1,3 +1,12 @@
+# 3.0.0
+
+- Enforce TLS on the `session-db` connection when deployed against an enforced-SSL database (magda-io/magda#3742):
+  - Upgrade `@magda/authentication-plugin-sdk` + the `magda-common` Helm chart dependency to v7 (`7.0.0-alpha.1`), and include the `magda.db-client-sslmode-env-v1` helper contract so the pod receives `PGSSLMODE` for its `session-db` connection. The v7 SDK derives the `node-postgres` `ssl` option from `PGSSLMODE`/`PGSSLROOTCERT` explicitly (fixes `SELF_SIGNED_CERT_IN_CHAIN` against Magda's self-signed server cert).
+  - Support `sslmode: verify-ca`/`verify-full` (server-certificate verification): adopt the `magda.db-client-ca-env-v1` helper contract, mounting the PostgreSQL server CA and setting `PGSSLROOTCERT`. Under `disable`/`require` these render nothing (self-guarded).
+  - Add `global.magdaCompatibilityCheck` (default `true`). Standalone `helm template`/`helm lint` (no `magda-core` present) must set it to `false`; the `helm-lint` script now does so.
+- Modernize the toolchain: build as an **ES module** (matching the other Magda auth plugins), upgrade to **Node.js 22**, TypeScript 5, `tsx`/mocha 10, and `openid-client` v4. Upgrade `@magda/docker-utils` and `@magda/ci-utils`.
+- **Requires Magda v7+** (breaking change; on the v7 pre-release line, `>= 7.0.0-alpha.1`, which first ships the `db-client-ca-env-v1` contract this chart now calls). Deploy as a chart dependency in the same Helm release as Magda; deploying against an unsupported Magda fails the `magda.compatibility-check` handshake at render time. Users on Magda v6 or lower should stay on the `2.x` line.
+
 # v2.0.4
 
 - #14 add `forceEnableLogoutEndpoint` config option for the use case where auth0 users use custom domains

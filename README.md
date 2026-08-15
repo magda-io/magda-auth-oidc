@@ -4,7 +4,18 @@
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
-Requires MAGDA version v2.0.0 or above.
+## Version Compatibility
+
+Pick the chart version that matches your Magda release:
+
+| This chart | Requires Magda | Notes |
+| ---------- | -------------- | ----- |
+| **`v3.x`** (from `v3.0.0-alpha.0`) | **v7.0.0 or above** | Connects to `session-db` over **TLS** when the database enforces SSL. Uses the versioned `magda.db-client-sslmode-env-v1` Helm helper contract plus `magda.db-client-ca-env-v1` for `sslmode: verify-ca`/`verify-full` server-certificate verification (needs `magda-core` `>= 7.0.0-alpha.1`), and runs on **Node.js 22**. |
+| **`v2.x`** | **v6.x or below** (v2.0.0+) | Use this line if you run **Magda v6 or lower**. Does not emit `PGSSLMODE` and will not work against an SSL-enforced external database. |
+
+> ⚠️ **`v3.x` is a breaking change and requires Magda v7+** (on the v7 pre-release line, **`>= 7.0.0-alpha.1`**, which first shipped the `db-client-ca-env-v1` contract this chart now calls). Do **not** deploy `v3.x` alongside Magda v6 or lower, or an earlier v7 alpha — the required helper contracts are only provided by a recent enough `magda-core`, and rendering will fail closed with `no template "magda.compatibility-check" associated` or a contract-not-supported error (this is intentional — the render-time compatibility handshake is controlled by `global.magdaCompatibilityCheck`, default `true`; see the [Magda Helm Helper Contracts](https://github.com/magda-io/magda/blob/next/docs/docs/helm-helper-contracts.md) documentation).
+
+> **Deploy as a chart dependency in the same Helm release as Magda** (not a separate `helm install`), so the `magda.compatibility-check` template resolves.
 
 ### How to Use
 
@@ -12,7 +23,9 @@ Requires MAGDA version v2.0.0 or above.
 ```yaml
 - name: magda-auth-oidc
   alias: magda-auth-my-idp
-  version: "2.0.0" # or put the latest version number here
+  # Magda v7+: use the latest v3.x (currently pre-release, since the official v3.0.0 ships after Magda v7.0.0).
+  # Magda v6 or lower: use the latest v2.x. See "Version Compatibility" above.
+  version: "3.0.0-alpha.0"
   repository: "oci://ghcr.io/magda-io/charts"
 ```
 
@@ -60,7 +73,7 @@ Kubernetes: `>= 1.14.0-0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| oci://ghcr.io/magda-io/charts | magda-common | 2.2.5 |
+| oci://ghcr.io/magda-io/charts | magda-common | 7.0.0-alpha.1 |
 
 ## Values
 
@@ -91,8 +104,9 @@ Kubernetes: `>= 1.14.0-0`
 | defaultImage.repository | string | `"ghcr.io/magda-io"` |  |
 | disableLogoutEndpoint | bool | `false` | Whether to disable the logout endpoint. Optional. Default: false. If set to true, the logout endpoint will be disabled. When set to false, the logout endpoint will be only enabled when the OIDC provider supports the `end_session_endpoint` endpoint. |
 | forceEnableLogoutEndpoint | bool | `false` | Whether to force enable the logout endpoint. Optional. Default: false. Some providers (e.g. auth0) do not show the `end_session_endpoint` endpoint via OIDC well-known config endpoint,  but they do support the `end_session_endpoint` endpoint.  For those providers, you can set this option to `true`` to force enable the logout endpoint by patching the OIDC well-known config endpoint response. When the issuer url domain is `auth0.com`, we will auto turn on this feature even if this option is not set to `true`. This option is often for use case where users use auth0 custom domain. |
-| global | object | `{"authPluginAllowedExternalRedirectDomains":[],"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
+| global | object | `{"authPluginAllowedExternalRedirectDomains":[],"authPluginRedirectUrl":"/sign-in-redirect","externalUrl":"","image":{},"magdaCompatibilityCheck":true,"rollingUpdate":{}}` | only for providing appropriate default value for helm lint |
 | global.authPluginAllowedExternalRedirectDomains | list | `[]` | By default, at end of authentication process, an auth plugin will never redirect the user to an external domain,  even if `authPluginRedirectUrl` is configured to an URL with an external domain. Unless an external domain is added to the whitelist i.e. this `authPluginAllowedExternalRedirectDomains` config,  any auth plugins will always ignore the domain part of the url (if supplied) and only redirect the user to the URL path under the current domain. Please note: you add a url host string to this list. e.g. "abc.com:8080" |
+| global.magdaCompatibilityCheck | bool | `true` | Whether to run the Magda Helm helper-contract compatibility check. Leave as `true` in normal deployments alongside Magda v7+. A standalone `helm template`/`helm lint` of this chart (no `magda-core` present) must set this to `false` (unquoted), otherwise the `magda.compatibility-check` template is undefined and the render fails. See https://github.com/magda-io/magda/blob/next/docs/docs/helm-helper-contracts.md |
 | image.name | string | `"magda-auth-oidc"` |  |
 | issuer | string | `nil` | OIDC issuer url. e.g. https://example.com or https://example.com/oidc A valid issuer url must has `/.well-known/openid-configuration` endpoint. i.e. URL `<issuer>/.well-known/openid-configuration` must be accessible |
 | maxClockSkew | string | `nil` | OIDC openid client clock skew tolerance (in seconds). Default to 120 if not provided |
