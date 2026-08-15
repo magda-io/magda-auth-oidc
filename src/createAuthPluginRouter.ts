@@ -20,11 +20,14 @@ import OpenIdClient, {
     Client
 } from "openid-client";
 import os from "os";
+import fs from "fs";
+import { URL } from "url";
 import urijs from "urijs";
 import { validate as uuidValidate } from "uuid";
-import { require } from "@magda/esm-utils";
 
-const pkg = require("../package.json");
+const pkg = JSON.parse(
+    fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8")
+);
 
 const OIDC_DEFAULT_TIMEOUT = 10000;
 const OIDC_DEFAULT_MAX_CLOCK_SKEW = 120;

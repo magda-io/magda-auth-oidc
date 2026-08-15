@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -7,10 +8,11 @@ import {
     createMagdaSessionRouter,
     AuthPluginConfig
 } from "@magda/authentication-plugin-sdk";
-import { __dirname, require } from "@magda/esm-utils";
+import { __dirname } from "@magda/esm-utils";
 import createAuthPluginRouter from "./createAuthPluginRouter.js";
 
-const coerceJson = (path?: string) => path && require(path);
+const coerceJson = (path?: string) =>
+    path ? JSON.parse(fs.readFileSync(path, "utf-8")) : undefined;
 
 const argv = yargs(hideBin(process.argv))
     .config()
