@@ -22,6 +22,7 @@ import OpenIdClient, {
 import os from "os";
 import urijs from "urijs";
 import { validate as uuidValidate } from "uuid";
+import { require } from "@magda/esm-utils";
 
 const pkg = require("../package.json");
 
