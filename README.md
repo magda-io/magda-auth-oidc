@@ -1,6 +1,6 @@
 # magda-auth-oidc
 
-![Version: 2.0.4](https://img.shields.io/badge/Version-2.0.4-informational?style=flat-square)
+![Version: 3.0.0-alpha.0](https://img.shields.io/badge/Version-3.0.0--alpha.0-informational?style=flat-square)
 
 A Generic Magda Authentication Plugin for OpenID Connect.
 
